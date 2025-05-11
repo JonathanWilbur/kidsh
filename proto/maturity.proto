@@ -1,0 +1,133 @@
+package maturity;
+
+syntax = "proto3";
+
+service BankBrokerage {
+    rpc CheckBalance (ReplaceMe) returns (ReplaceMe);
+    rpc Transfer (ReplaceMe) returns (ReplaceMe);
+    rpc ListTransactions (ReplaceMe) returns (ReplaceMe);
+    rpc AutoPay (ReplaceMe) returns (ReplaceMe);
+    rpc ListAutoPays (ReplaceMe) returns (ReplaceMe);
+    rpc GetAccountInfo (ReplaceMe) returns (ReplaceMe);
+    rpc Trade (ReplaceMe) returns (ReplaceMe);
+    rpc GetAccountPositions (ReplaceMe) returns (ReplaceMe);
+    rpc Withdraw (ReplaceMe) returns (ReplaceMe);
+    rpc Deposit (ReplaceMe) returns (ReplaceMe);
+    rpc ListTaxForms (ReplaceMe) returns (ReplaceMe);
+    rpc ListStatements (ReplaceMe) returns (ReplaceMe);
+    rpc DownloadTaxForm (ReplaceMe) returns (ReplaceMe);
+    rpc DownloadStatement (ReplaceMe) returns (ReplaceMe);
+    rpc ApplyForLoan (ReplaceMe) returns (ReplaceMe);
+    rpc OrderChecks (ReplaceMe) returns (ReplaceMe);
+    rpc GetSecurityInfo (ReplaceMe) returns (ReplaceMe);
+    rpc SearchSecurities (ReplaceMe) returns (ReplaceMe);
+    rpc ActivatePaymentCard (ReplaceMe) returns (ReplaceMe);
+    rpc DeactivatePaymentCard (ReplaceMe) returns (ReplaceMe);
+    rpc FreezePaymentCard (ReplaceMe) returns (ReplaceMe);
+}
+
+service Messaging {
+    rpc SendMessage (ReplaceMe) returns (ReplaceMe);
+    rpc CheckMessages (ReplaceMe) returns (ReplaceMe);
+}
+
+service BulletinBoard {
+    rpc Post (ReplaceMe) returns (ReplaceMe);
+    rpc SearchPosts (ReplaceMe) returns (ReplaceMe);
+    rpc ListPosts (ReplaceMe) returns (ReplaceMe);
+}
+
+service Courthouse {
+    rpc SubmitComplaint (ReplaceMe) returns (ReplaceMe);
+    rpc SubmitAppeal (ReplaceMe) returns (ReplaceMe);
+}
+
+service Insurer {
+    rpc SignUpForPolicy (ReplaceMe) returns (ReplaceMe);
+    rpc CancelPolicy (ReplaceMe) returns (ReplaceMe);
+    rpc ListPolicies (ReplaceMe) returns (ReplaceMe);
+    rpc SubmitClaim (ReplaceMe) returns (ReplaceMe);
+}
+
+service TaxCollector {
+    rpc FileHomesteadExemption (ReplaceMe) returns (ReplaceMe);
+    rpc Dispute (ReplaceMe) returns (ReplaceMe);
+}
+
+service Sheriff {
+    rpc Report (ReplaceMe) returns (ReplaceMe);
+    rpc RequestWatch (ReplaceMe) returns (ReplaceMe);
+}
+
+service OnlineStore {
+    rpc BuyProduct (ReplaceMe) returns (ReplaceMe);
+    rpc ListProducts (ReplaceMe) returns (ReplaceMe);
+    rpc SearchProducts (ReplaceMe) returns (ReplaceMe);
+    rpc SubmitReturn (ReplaceMe) returns (ReplaceMe);
+}
+
+// This is the interface parents use to control the environment.
+service ParentInterface {
+    rpc SetInflationRate (ReplaceMe) returns (ReplaceMe);
+    rpc SetTaxRate (ReplaceMe) returns (ReplaceMe);
+    rpc GetEconomyInfo (ReplaceMe) returns (ReplaceMe);
+    rpc AddProductToStore (ReplaceMe) returns (ReplaceMe);
+    rpc RemoveProductFromStore (ReplaceMe) returns (ReplaceMe);
+    rpc GiveFeedback (ReplaceMe) returns (ReplaceMe);
+
+    rpc GetMyProfile (ReplaceMe) returns (ReplaceMe);
+    rpc UpdateMyProfile (ReplaceMe) returns (ReplaceMe);
+    rpc AddChild (ReplaceMe) returns (ReplaceMe);
+    rpc RemoveChild (ReplaceMe) returns (ReplaceMe);
+
+    // For issuing speeding tickets and the like.
+    rpc Fine (ReplaceMe) returns (ReplaceMe);
+    rpc CreateInvoice (ReplaceMe) returns (ReplaceMe);
+    rpc CreateReceipt (ReplaceMe) returns (ReplaceMe);
+    rpc CreateQuote (ReplaceMe) returns (ReplaceMe);
+}
+
+service Calendar {
+    rpc GetDay (ReplaceMe) returns (ReplaceMe);
+    rpc GetWeek (ReplaceMe) returns (ReplaceMe);
+    rpc GetMonth (ReplaceMe) returns (ReplaceMe);
+    rpc GetYear (ReplaceMe) returns (ReplaceMe);
+    rpc ScheduleEvent (ReplaceMe) returns (ReplaceMe);
+}
+
+service Contacts {
+    rpc SaveContact (ReplaceMe) returns (ReplaceMe);
+    rpc ListContacts (ReplaceMe) returns (ReplaceMe);
+    rpc SearchContacts (ReplaceMe) returns (ReplaceMe);
+}
+
+service AdminInterface {
+    rpc AddAccount (ReplaceMe) returns (ReplaceMe);
+    rpc RemoveAccount (ReplaceMe) returns (ReplaceMe);
+}
+
+service PostOffice {
+    rpc CheckTracking (ReplaceMe) returns (ReplaceMe);
+    rpc SchedulePickup (ReplaceMe) returns (ReplaceMe);
+    rpc ChangeAddress (ReplaceMe) returns (ReplaceMe);
+    rpc HoldMail (ReplaceMe) returns (ReplaceMe);
+    rpc RentPostOfficeBox (ReplaceMe) returns (ReplaceMe);
+}
+
+service PollingPlace {
+    rpc CastBallot (ReplaceMe) returns (ReplaceMe);
+}
+
+service IntellectualProperty {
+    rpc ApplyForPatent (ReplaceMe) returns (ReplaceMe);
+    rpc RegisterCopyright (ReplaceMe) returns (ReplaceMe);
+}
+
+// TODO: Passports
+// TODO: Apostilles
+
+// TODO: Should there be an interface for parents to chat / discuss? Probably not. Just use a forum or something.
+
+message ReplaceMe {
+
+}
