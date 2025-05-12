@@ -139,7 +139,7 @@ func init() {
 	})
 	registerCommand(Command{
 		Name:        "birthdays",
-		Aliases:     []string{"birthdays", "bday"},
+		Aliases:     []string{"birthday", "bday"},
 		Description: "Display your birthday and those of your family members",
 		Func:        doBday,
 	})
@@ -178,6 +178,60 @@ func init() {
 		Aliases:     []string{"nums", "num"},
 		Description: "Display Numbers",
 		Func:        doNum,
+	})
+	registerCommand(Command{
+		Name:        "compare",
+		Aliases:     []string{"cmp"},
+		Description: "Compare two or more numbers",
+		Func:        doCompare,
+	})
+	registerCommand(Command{
+		Name:        "count",
+		Aliases:     []string{"cnt"},
+		Description: "Count up to a number",
+		Func:        doCount,
+	})
+	registerCommand(Command{
+		Name:        "sort",
+		Aliases:     []string{},
+		Description: "Sort words or numbers",
+		Func:        doSort,
+	})
+	registerCommand(Command{
+		Name:        "unique",
+		Aliases:     []string{"uniq", "distinct"},
+		Description: "Remove duplicates from a list so that they are all unique / distinct",
+		Func:        doUniq,
+	})
+	registerCommand(Command{
+		Name:        "pwd",
+		Aliases:     []string{"cwd"},
+		Description: "Print the current working directory",
+		Func:        doPwd,
+	})
+	registerCommand(Command{
+		Name:        "cd",
+		Aliases:     []string{},
+		Description: "Change the current working directory",
+		Func:        doCd,
+	})
+	registerCommand(Command{
+		Name:        "list",
+		Aliases:     []string{"ls"},
+		Description: "List the files and folders in the current working directory",
+		Func:        doLs,
+	})
+	registerCommand(Command{
+		Name:        "first",
+		Aliases:     []string{},
+		Description: "Print the first item in a list",
+		Func:        doFirst,
+	})
+	registerCommand(Command{
+		Name:        "last",
+		Aliases:     []string{},
+		Description: "Print the last item in a list",
+		Func:        doLast,
 	})
 }
 

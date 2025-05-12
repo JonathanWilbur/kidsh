@@ -331,19 +331,190 @@ func doDate(args []string) error {
 	return nil
 }
 
-// func doCompare(args []string) error {
-// 	if len(args) == 0 {
-// 		fmt.Println("You need to provide arguments to compare")
-// 		fmt.Println("For example: 'compare 5 3'")
-// 		return nil
-// 	}
-// 	if len(args) == 1 {
-// 		fmt.Println("You need to provide two or more arguments to compare")
-// 		fmt.Println("For example: 'compare 5 3'")
-// 	}
+func doCompare(args []string) error {
+	if len(args) < 2 {
+		fmt.Println("You have to type in more than one number, silly!")
+		return nil
+	}
 
-// 	return nil
-// }
+	// Parse all arguments as integers
+	nums := make([]int, 0, len(args))
+	for _, arg := range args {
+		num, err := strconv.Atoi(arg)
+		if err != nil {
+			return fmt.Errorf("'%s' is not a valid number", arg)
+		}
+		nums = append(nums, num)
+	}
+
+	// Make a copy for sorting
+	sortedNums := make([]int, len(nums))
+	copy(sortedNums, nums)
+	sort.Ints(sortedNums)
+
+	// Special case for exactly two numbers
+	if len(nums) == 2 {
+		if nums[0] == nums[1] {
+			fmt.Printf("%d is equal to %d\n", nums[0], nums[1])
+		} else if nums[0] > nums[1] {
+			fmt.Printf("%d is larger than %d\n", nums[0], nums[1])
+		} else {
+			fmt.Printf("%d is larger than %d\n", nums[1], nums[0])
+		}
+		return nil
+	}
+
+	// Case for more than two numbers
+	smallest := sortedNums[0]
+	largest := sortedNums[len(sortedNums)-1]
+
+	fmt.Printf("The smallest number is %d\n", smallest)
+	fmt.Printf("The largest number is %d\n", largest)
+
+	// Print the numbers in sorted order
+	fmt.Print("Numbers in ascending order: ")
+	for i, num := range sortedNums {
+		fmt.Printf("%d", num)
+		if i < len(sortedNums)-1 {
+			fmt.Print(", ")
+		}
+	}
+	fmt.Println()
+	return nil
+}
+
+func doCount(args []string) error {
+	if len(args) != 1 && (len(args) == 2 && args[0] != "to") {
+		fmt.Println("You have to tell me what number to count to, Silly!")
+		return nil
+	}
+	arg := args[len(args)-1]
+	num, err := strconv.Atoi(arg)
+	if err != nil {
+		return fmt.Errorf("'%s' is not a valid number", arg)
+	}
+	if num > 100 {
+		fmt.Println("That number is too big. Try a smaller number.")
+		return nil
+	}
+	for i := 0; i <= num; i++ {
+		fmt.Printf("%d ", i)
+	}
+	fmt.Println()
+	return nil
+}
+
+func doSortLex(args []string) error {
+	sort.Strings(args)
+	for _, s := range args {
+		fmt.Printf("%s ", s)
+	}
+	fmt.Println()
+	return nil
+}
+
+func doSort(args []string) error {
+	// Parse all arguments as integers
+	nums := make([]int, 0, len(args))
+	for _, arg := range args {
+		num, err := strconv.Atoi(arg)
+		if err != nil {
+			// If any fail, assume we want to do a lexicographic sort.
+			return doSortLex(args)
+		}
+		nums = append(nums, num)
+	}
+
+	sortedNums := make([]int, len(nums))
+	copy(sortedNums, nums)
+	sort.Ints(sortedNums)
+	for i, num := range sortedNums {
+		fmt.Printf("%d", num)
+		if i < len(sortedNums)-1 {
+			fmt.Print(", ")
+		}
+	}
+	fmt.Println()
+	return nil
+}
+
+func doUniq(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no arguments provided to uniq command")
+	}
+	seen := make(map[string]bool)
+	unique := []string{}
+	for _, item := range args {
+		if !seen[item] {
+			seen[item] = true
+			unique = append(unique, item)
+		}
+	}
+	fmt.Println("Unique items:")
+	for _, item := range unique {
+		fmt.Println(item)
+	}
+	fmt.Printf("\nFound %d unique items from %d total items\n", len(unique), len(args))
+	if len(unique) < len(args) {
+		fmt.Printf("Removed %d duplicate(s)\n", len(args)-len(unique))
+	}
+	return nil
+}
+
+func doPwd(args []string) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %v", err)
+	}
+	fmt.Println(dir)
+	return nil
+}
+
+func doCd(args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("exactly one argument required, got %d: %q", len(args), args)
+	}
+	err := os.Chdir(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to change directory to '%s': %v", args[0], err)
+	}
+	return nil
+}
+
+func doLs(args []string) error {
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return fmt.Errorf("failed to list directory contents: %v", err)
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			fmt.Printf("%s/\n", file.Name())
+		} else {
+			fmt.Println(file.Name())
+		}
+	}
+	return nil
+}
+
+func doFirst(args []string) error {
+	if len(args) == 0 {
+		fmt.Println("You need to supply an argument, silly!")
+		return nil
+	}
+	fmt.Println(args[0])
+	return nil
+}
+
+func doLast(args []string) error {
+	if len(args) == 0 {
+		fmt.Println("you need to supply an argument, silly!")
+		return nil
+	}
+	arg := args[len(args)-1]
+	fmt.Println(arg)
+	return nil
+}
 
 var cmds = map[string]*Command{}
 
