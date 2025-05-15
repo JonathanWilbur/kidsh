@@ -13,7 +13,7 @@ anything to mess up your computer.
 ## Build
 
 ```bash
-go build -o kidsh ./src/main.go ./src/cmd.go
+go build -o kidsh src/main.go src/cmd.go src/ansi.go
 ```
 
 ## Built-In Commands
@@ -21,21 +21,14 @@ go build -o kidsh ./src/main.go ./src/cmd.go
 The shortcut names of these commands is still up in the air, but the commands
 by their full names will be:
 
-- [ ] Aliases, command descriptions
-- [x] `colors` - Displays colors with their names
-- [x] `days` - Displays days of the week, including what day it is today
-- [x] `cal` - Displays a calendar showing the month
 - [ ] `news` - Fetches an RSS feed that you, the parent explicitly configure
                before starting the shell.
 - [ ] `message` - Sends a message to somebody
   - Send a message unencrypted to a parent-configured server as a UDP payload.
-- [ ] `time` - Display the current time
-- [x] `date` - Display the current date
 - [ ] `birthdays` - Display birthdays
 - [ ] `calc` - A basic calculator
 - [ ] `fire` - Display a cozy fireplace
 - [ ] `bub` - Display bubbles
-- [x] `abc` - Display alphabet
 - [ ] `notes` - Read notes
 - [ ] Games (You will be able to turn these off)
     - [ ] `tetris` - Play Tetris

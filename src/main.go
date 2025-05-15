@@ -233,6 +233,72 @@ func init() {
 		Description: "Print the last item in a list",
 		Func:        doLast,
 	})
+	registerCommand(Command{
+		Name:        "reverse",
+		Aliases:     []string{"rev"},
+		Description: "Print the arguments in reverse order",
+		Func:        doRev,
+	})
+	registerCommand(Command{
+		Name:        "add",
+		Aliases:     []string{"sum", "total"},
+		Description: "Print the sum of all arguments added together",
+		Func:        doAdd,
+	})
+	registerCommand(Command{
+		Name:        "multiply",
+		Aliases:     []string{"mult", "mul"},
+		Description: "Print the product of all arguments multiplied together",
+		Func:        doMultiply,
+	})
+	registerCommand(Command{
+		Name:        "weather",
+		Aliases:     []string{"wtr"},
+		Description: "Print the weather",
+		Func:        doWeather,
+	})
+	registerCommand(Command{
+		Name:        "lowercase",
+		Aliases:     []string{"lower"},
+		Description: "Lowercase the arguments",
+		Func:        doLower,
+	})
+	registerCommand(Command{
+		Name:        "uppercase",
+		Aliases:     []string{"upper"},
+		Description: "Uppercase the arguments",
+		Func:        doUpper,
+	})
+	registerCommand(Command{
+		Name:        "environment",
+		Aliases:     []string{"env"},
+		Description: "Print the environment variables",
+		Func:        doEnv,
+	})
+	registerCommand(Command{
+		Name:        "shuffle",
+		Aliases:     []string{"shuf"},
+		Description: "Randomly re-arrange the arguments",
+		Func:        doShuffle,
+	})
+	registerCommand(Command{
+		Name:        "random",
+		Aliases:     []string{"rand"},
+		Description: "Print a random number",
+		Func:        doRandom,
+	})
+	registerCommand(Command{
+		Name:        "cointoss",
+		Aliases:     []string{"coin", "flip", "coinflip"},
+		Description: "Flip a coin",
+		Func:        doFlip,
+	})
+	registerCommand(Command{
+		Name:        "sleep",
+		Aliases:     []string{"wait"},
+		Description: "Pause for some amount of time",
+		Func:        doSleep,
+	})
 }
 
 func main() {

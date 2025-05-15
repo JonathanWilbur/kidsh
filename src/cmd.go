@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -315,7 +318,8 @@ func doColors(args []string) error {
 
 func doExit(args []string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("exactly one argument required, got %d: %q", len(args), args)
+		os.Exit(0)
+		return nil
 	}
 	code, err := strconv.ParseInt(args[0], 32, 10)
 	if err != nil {
@@ -513,6 +517,176 @@ func doLast(args []string) error {
 	}
 	arg := args[len(args)-1]
 	fmt.Println(arg)
+	return nil
+}
+
+func doRev(args []string) error {
+	slices.Reverse(args)
+	for _, arg := range args {
+		fmt.Printf("%s ", arg)
+	}
+	fmt.Println()
+	return nil
+}
+
+func doAdd(args []string) error {
+	sum := 0
+	for _, arg := range args {
+		num, err := strconv.Atoi(arg)
+		if err != nil {
+			return err
+		}
+		sum += num
+	}
+	fmt.Printf("The total is: %d\n", sum)
+	return nil
+}
+
+func doMultiply(args []string) error {
+	if len(args) < 1 {
+		fmt.Println("you need to supply an argument, silly!")
+		return nil
+	}
+	result, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+	for _, arg := range args[1:] {
+		num, err := strconv.Atoi(arg)
+		if err != nil {
+			return err
+		}
+		result *= num
+	}
+	fmt.Printf("The product is: %d\n", result)
+	return nil
+}
+
+const DEFAULT_WEATHER_URL = "https://wttr.in/St.%20Johns,%20Florida?format=3&u"
+
+// const DEFAULT_WEATHER_URL = "https://wttr.in/St.%20Johns,%20Florida?2Anu"
+
+func doWeather(args []string) error {
+	weatherUrl := os.Getenv("WEATHER_URL")
+	if len(weatherUrl) < 8 { // Could not be valid if smaller.
+		weatherUrl = DEFAULT_WEATHER_URL
+	}
+	resp, err := http.Get(weatherUrl)
+	if err != nil {
+		return fmt.Errorf("error making request: %v", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response: %v", err)
+	}
+	fmt.Println(string(body))
+	return nil
+}
+
+func doUpper(args []string) error {
+	for i, arg := range args {
+		fmt.Print(strings.ToUpper(arg))
+		if i < len(args)-1 {
+			fmt.Print(" ")
+		}
+	}
+	fmt.Println()
+	return nil
+}
+
+func doLower(args []string) error {
+	for i, arg := range args {
+		fmt.Print(strings.ToLower(arg))
+		if i < len(args)-1 {
+			fmt.Print(" ")
+		}
+	}
+	fmt.Println()
+	return nil
+}
+
+func doEnv(args []string) error {
+	envVars := os.Environ()
+	sort.Strings(envVars)
+	for _, env := range envVars {
+		fmt.Println(env)
+	}
+	return nil
+}
+
+func doShuffle(args []string) error {
+	shuffled := make([]string, len(args))
+	copy(shuffled, args)
+
+	// Fisher-Yates shuffle algorithm
+	for i := len(shuffled) - 1; i > 0; i-- {
+		j := time.Now().UnixNano() % int64(i+1)
+		shuffled[i], shuffled[int(j)] = shuffled[int(j)], shuffled[i]
+	}
+
+	for i, arg := range shuffled {
+		fmt.Print(arg)
+		if i < len(shuffled)-1 {
+			fmt.Print(" ")
+		}
+	}
+	fmt.Println()
+	return nil
+}
+
+func doRandom(args []string) error {
+	max := 100 // Default max value
+
+	// If an argument is provided, use it as the max value
+	if len(args) > 0 {
+		var err error
+		max, err = strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("invalid number '%s': %v", args[0], err)
+		}
+		if max <= 0 {
+			return fmt.Errorf("maximum value must be positive, got %d", max)
+		}
+	}
+
+	// Generate random number between 0 and max
+	source := time.Now().UnixNano()
+	randomNum := int(source % int64(max+1))
+
+	fmt.Printf("Random number (0-%d): %d\n", max, randomNum)
+	return nil
+}
+
+func doFlip(args []string) error {
+	source := time.Now().UnixNano()
+	result := "Tails"
+	if source%2 == 0 {
+		result = "Heads"
+	}
+	fmt.Printf("The coin flip result is: %s\n", result)
+	return nil
+}
+
+func doSleep(args []string) error {
+	// Default sleep time is 1 second
+	sleepTime := 1.0
+
+	// Parse duration if provided as argument
+	if len(args) > 0 {
+		var err error
+		sleepTime, err = strconv.ParseFloat(args[0], 64)
+		if err != nil {
+			return fmt.Errorf("invalid sleep duration '%s': %v", args[0], err)
+		}
+		if sleepTime < 0 {
+			return fmt.Errorf("sleep duration cannot be negative, got %f", sleepTime)
+		}
+	}
+
+	// Convert to duration and sleep
+	duration := time.Duration(sleepTime * float64(time.Second))
+	time.Sleep(duration)
 	return nil
 }
 
