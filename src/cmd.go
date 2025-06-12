@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/emersion/go-vcard"
 )
 
 const (
@@ -116,7 +118,12 @@ const (
 
 const stackEnv = "KIDSH_STACK"
 const queueEnv = "KIDSH_QUEUE"
+
+// TODO: Make these files a full path given by an environment variable.
 const todoFile = "todo.db"
+const contactsFile = "contacts.vcf"
+const myName = "John Doe"
+
 const separator = "\x1E" // ASCII Record Separator (RS)
 
 type Command struct {
@@ -1023,6 +1030,83 @@ func doDone(args []string) error {
 
 	fmt.Printf("Done: %s\n", done)
 	return nil
+}
+
+func doHomeAddress(args []string) error {
+	f, err := os.Open(contactsFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := vcard.NewDecoder(f)
+	for {
+		card, err := dec.Decode()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return err
+		}
+
+		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == myName {
+			addresses := card[vcard.FieldAddress]
+			for _, a := range addresses {
+				if strings.Contains(strings.ToLower(a.Params.Get("TYPE")), "home") {
+					parts := strings.Split(a.Value, ";")
+					labels := []string{
+						"PO Box",
+						"Extended Address",
+						"Street Address",
+						"Locality",
+						"Region",
+						"Postal Code",
+						"Country",
+					}
+
+					fmt.Printf("%sMy home address is:%s\n", BoldGreenText, NormalText)
+					lines := []string{}
+					if parts[0] != "" {
+						lines = append(lines, parts[0]) // PO Box
+					}
+					if parts[1] != "" {
+						lines = append(lines, parts[1]) // Extended
+					}
+					if parts[2] != "" {
+						lines = append(lines, parts[2]) // Street
+					}
+					line2 := strings.TrimSpace(strings.Join([]string{parts[3], parts[4], parts[5]}, " "))
+					if line2 != "" {
+						lines = append(lines, line2) // City Region Postal
+					}
+					if parts[6] != "" {
+						lines = append(lines, parts[6]) // Country
+					}
+					for _, l := range lines {
+						fmt.Println(l)
+					}
+
+					fmt.Printf("\n%sFormatted Address Fields:%s\n", BoldGreenText, NormalText)
+					maxLabelLen := 0
+					for _, label := range labels {
+						if len(label) > maxLabelLen {
+							maxLabelLen = len(label)
+						}
+					}
+					for i := 0; i < len(parts) && i < len(labels); i++ {
+						if parts[i] != "" {
+							fmt.Printf("%-*s: %s\n", maxLabelLen, labels[i], parts[i])
+						}
+					}
+
+					return nil
+				}
+			}
+			return fmt.Errorf("home address not found for %s", myName)
+		}
+	}
+
+	return fmt.Errorf("contact not found: %s", myName)
 }
 
 var cmds = map[string]*Command{}

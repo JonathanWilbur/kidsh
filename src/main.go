@@ -377,6 +377,12 @@ func init() {
 		Description: "Mark a todo item as done either by name or index",
 		Func:        doDone,
 	})
+	registerCommand(Command{
+		Name:        "home",
+		Aliases:     []string{},
+		Description: "Display my home address",
+		Func:        doHomeAddress,
+	})
 }
 
 func main() {

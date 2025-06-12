@@ -1,0 +1,17 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:John Doe
+N:Doe;John;;;
+EMAIL:john.doe@example.com
+TEL;TYPE=cell:123-456-7890
+ADR;TYPE=home:;;123 Maple St;Springfield;IL;62704;USA
+END:VCARD
+
+BEGIN:VCARD
+VERSION:4.0
+FN:Jane Smith
+N:Smith;Jane;;;
+EMAIL:jane.smith@example.com
+TEL;TYPE=cell:987-654-3210
+ADR;TYPE=home:;;456 Oak Ave;Metropolis;NY;10001;USA
+END:VCARD
