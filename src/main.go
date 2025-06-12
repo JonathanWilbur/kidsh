@@ -317,6 +317,12 @@ func init() {
 		Description: "Display my IP address",
 		Func:        doIp,
 	})
+	registerCommand(Command{
+		Name:        "seasons",
+		Aliases:     []string{"season"},
+		Description: "Display the seasons of the year",
+		Func:        doSeasons,
+	})
 }
 
 func main() {

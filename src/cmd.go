@@ -737,6 +737,46 @@ func doIp(args []string) error {
 	return nil
 }
 
+func doSeasons(args []string) error {
+	// Define emoji and colors for each season
+	spring := fmt.Sprintf("\033[42;37m Spring \033[0m") // Green background, white text
+	summer := fmt.Sprintf("\033[43;30m Summer \033[0m") // Yellow background, black text
+	autumn := fmt.Sprintf("\033[41;37m Autumn \033[0m") // Red background, white text
+	winter := fmt.Sprintf("\033[44;37m Winter \033[0m") // Blue background, white text
+
+	// Get current season in Northern Hemisphere
+	now := time.Now()
+	month := now.Month()
+	var currentSeason string
+
+	switch {
+	case month >= 3 && month <= 5:
+		currentSeason = spring
+	case month >= 6 && month <= 8:
+		currentSeason = summer
+	case month >= 9 && month <= 11:
+		currentSeason = autumn
+	default:
+		currentSeason = winter
+	}
+
+	fmt.Printf("Current season (Northern Hemisphere): %s\n", currentSeason)
+	fmt.Println("The Four Seasons:")
+	fmt.Println(spring)
+	fmt.Println("  - March, April, May (Northern Hemisphere)")
+	fmt.Println("  - September, October, November (Southern Hemisphere)")
+	fmt.Println(summer)
+	fmt.Println("  - June, July, August (Northern Hemisphere)")
+	fmt.Println("  - December, January, February (Southern Hemisphere)")
+	fmt.Println(autumn)
+	fmt.Println("  - September, October, November (Northern Hemisphere)")
+	fmt.Println("  - March, April, May (Southern Hemisphere)")
+	fmt.Println(winter)
+	fmt.Println("  - December, January, February (Northern Hemisphere)")
+	fmt.Println("  - June, July, August (Southern Hemisphere)")
+	return nil
+}
+
 var cmds = map[string]*Command{}
 
 func registerCommand(cmd Command) {
