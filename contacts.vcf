@@ -5,6 +5,7 @@ N:Doe;John;;;
 EMAIL:john.doe@example.com
 TEL;TYPE=cell:123-456-7890
 ADR;TYPE=home:;;123 Maple St;Springfield;IL;62704;USA
+BDAY:2016-01-05
 END:VCARD
 
 BEGIN:VCARD
@@ -14,4 +15,5 @@ N:Smith;Jane;;;
 EMAIL:jane.smith@example.com
 TEL;TYPE=cell:987-654-3210
 ADR;TYPE=home:;;456 Oak Ave;Metropolis;NY;10001;USA
+BDAY:2010-10-10
 END:VCARD

@@ -383,6 +383,12 @@ func init() {
 		Description: "Display my home address",
 		Func:        doHomeAddress,
 	})
+	registerCommand(Command{
+		Name:        "birthday",
+		Aliases:     []string{"bday"},
+		Description: "Display my birthday",
+		Func:        doBirthday,
+	})
 }
 
 func main() {

@@ -1109,6 +1109,62 @@ func doHomeAddress(args []string) error {
 	return fmt.Errorf("contact not found: %s", myName)
 }
 
+func doBirthday(args []string) error {
+	f, err := os.Open(contactsFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := vcard.NewDecoder(f)
+	for {
+		card, err := dec.Decode()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return err
+		}
+
+		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == myName {
+			bdayRaw := card.PreferredValue(vcard.FieldBirthday)
+			if bdayRaw == "" {
+				return fmt.Errorf("birthday not found for %s", myName)
+			}
+
+			var bday time.Time
+			var parsed bool
+
+			// Try full date first
+			if t, err := time.Parse("2006-01-02", bdayRaw); err == nil {
+				bday = t
+				parsed = true
+			} else if t, err := time.Parse("--01-02", bdayRaw); err == nil {
+				// vCard 4.0 allows partial date like --MM-DD
+				bday = t
+				parsed = true
+			}
+
+			if parsed {
+				fmt.Printf("My birthday is: %s\n", bday.Format("January 2, 2006"))
+
+				now := time.Now()
+				if bday.Month() == now.Month() && bday.Day() == now.Day() {
+					fmt.Println("Today is your birthday! Yay!")
+				}
+			} else {
+				fmt.Printf("My birthday is: %s\n", bdayRaw)
+			}
+
+			return nil
+		}
+	}
+
+	// TODO: Print out birthdays of family members
+
+	return fmt.Errorf("contact not found: %s", myName)
+}
+
 var cmds = map[string]*Command{}
 
 func registerCommand(cmd Command) {
