@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"slices"
@@ -687,6 +688,52 @@ func doSleep(args []string) error {
 	// Convert to duration and sleep
 	duration := time.Duration(sleepTime * float64(time.Second))
 	time.Sleep(duration)
+	return nil
+}
+
+func doReset(args []string) error {
+	// ANSI escape sequence to reset the terminal
+	resetSequence := "\033c"
+	fmt.Print(resetSequence)
+	return nil
+}
+
+func doCompass(args []string) error {
+	fmt.Println("   NW   N    NE  ")
+	fmt.Println("        |        ")
+	fmt.Println("   W ---+--- E   ")
+	fmt.Println("        |        ")
+	fmt.Println("   SW   S    SE  ")
+	fmt.Println()
+	fmt.Println("N = North")
+	fmt.Println("E = East")
+	fmt.Println("S = South")
+	fmt.Println("W = West")
+	fmt.Println()
+	fmt.Println("NE = Northeast")
+	fmt.Println("SE = Southeast")
+	fmt.Println("SW = Southwest")
+	fmt.Println("NW = Northwest")
+	return nil
+}
+
+func doIp(args []string) error {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return fmt.Errorf("failed to get interface addresses: %v", err)
+	}
+	fmt.Println("My IP Addresses:")
+	for _, addr := range addrs {
+		// Check if this is an IP network address
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			// Show IPv4 addresses
+			if ipnet.IP.To4() != nil {
+				fmt.Printf("  %s\n", ipnet.IP.String())
+			} else if ipnet.IP.To16() != nil {
+				fmt.Printf("  %s\n", ipnet.IP.String())
+			}
+		}
+	}
 	return nil
 }
 

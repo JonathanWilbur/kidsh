@@ -299,6 +299,24 @@ func init() {
 		Description: "Pause for some amount of time",
 		Func:        doSleep,
 	})
+	registerCommand(Command{
+		Name:        "compass",
+		Aliases:     []string{},
+		Description: "Print a compass",
+		Func:        doCompass,
+	})
+	registerCommand(Command{
+		Name:        "reset",
+		Aliases:     []string{},
+		Description: "Reset the terminal",
+		Func:        doReset,
+	})
+	registerCommand(Command{
+		Name:        "ipaddresses",
+		Aliases:     []string{"ipaddress", "ip"},
+		Description: "Display my IP address",
+		Func:        doIp,
+	})
 }
 
 func main() {
