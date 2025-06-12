@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-vcard"
+	"github.com/lukechampine/nock"
 )
 
 const (
@@ -1231,6 +1232,16 @@ func doCountdown(args []string) error {
 		time.Sleep(1 * time.Second)
 	}
 	fmt.Fprintf(os.Stdout, "\033[2K\rGo!\n")
+	return nil
+}
+
+func doNock(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please provide a Nock expression")
+	}
+	src := strings.Join(args, " ")
+	expr := nock.Parse(src)
+	fmt.Println(expr.String())
 	return nil
 }
 

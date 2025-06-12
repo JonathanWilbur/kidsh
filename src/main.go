@@ -401,6 +401,12 @@ func init() {
 		Description: "Display a countdown",
 		Func:        doCountdown,
 	})
+	registerCommand(Command{
+		Name:        "nock",
+		Aliases:     []string{},
+		Description: "Evaluate a Nock expression (prints 0 on error)",
+		Func:        doNock,
+	})
 }
 
 func main() {
