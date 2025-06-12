@@ -323,6 +323,30 @@ func init() {
 		Description: "Display the seasons of the year",
 		Func:        doSeasons,
 	})
+	registerCommand(Command{
+		Name:        "uptime",
+		Aliases:     []string{},
+		Description: "Display the uptime of the system",
+		Func:        doUptime,
+	})
+	registerCommand(Command{
+		Name:        "push",
+		Aliases:     []string{},
+		Description: "Push a string to a stack",
+		Func:        doPush,
+	})
+	registerCommand(Command{
+		Name:        "pop",
+		Aliases:     []string{},
+		Description: "Pop a string from the stack",
+		Func:        doPop,
+	})
+	registerCommand(Command{
+		Name:        "stack",
+		Aliases:     []string{},
+		Description: "Display the contents of the stack",
+		Func:        doPrintStack,
+	})
 }
 
 func main() {

@@ -114,6 +114,9 @@ const (
 	DefaultText      = "\033[22;39m" // Normal text color and intensity
 )
 
+const stackEnv = "KIDSH_STACK"
+const separator = "\x1E" // ASCII Record Separator (RS)
+
 type Command struct {
 	Name        string
 	Aliases     []string
@@ -774,6 +777,104 @@ func doSeasons(args []string) error {
 	fmt.Println(winter)
 	fmt.Println("  - December, January, February (Northern Hemisphere)")
 	fmt.Println("  - June, July, August (Southern Hemisphere)")
+	return nil
+}
+
+func doUptime(args []string) error {
+	// Read uptime info from /proc/uptime on Linux
+	data, err := os.ReadFile("/proc/uptime")
+	if err != nil {
+		return fmt.Errorf("failed to read uptime: %v", err)
+	}
+
+	// Parse uptime - first value is total uptime in seconds
+	fields := strings.Fields(string(data))
+	if len(fields) < 1 {
+		return fmt.Errorf("invalid uptime data")
+	}
+
+	uptimeSeconds, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return fmt.Errorf("failed to parse uptime: %v", err)
+	}
+
+	// Calculate days, hours, minutes, seconds
+	days := int(uptimeSeconds / 86400)
+	hours := int((uptimeSeconds - float64(days)*86400) / 3600)
+	minutes := int((uptimeSeconds - float64(days)*86400 - float64(hours)*3600) / 60)
+	seconds := int(uptimeSeconds - float64(days)*86400 - float64(hours)*3600 - float64(minutes)*60)
+
+	fmt.Print("System uptime: ")
+	if days > 0 {
+		fmt.Printf("%d day(s), ", days)
+	}
+	fmt.Printf("%02d:%02d:%02d\n", hours, minutes, seconds)
+
+	// Get current time
+	now := time.Now()
+	fmt.Printf("Current time: %s\n", now.Format("15:04:05"))
+
+	return nil
+}
+
+func doPush(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no values provided to push")
+	}
+
+	current := os.Getenv(stackEnv)
+	newEntries := strings.Join(args, separator)
+
+	var newStack string
+	if current == "" {
+		newStack = newEntries
+	} else {
+		newStack = current + separator + newEntries
+	}
+
+	return os.Setenv(stackEnv, newStack)
+}
+
+func doPop(args []string) error {
+	current := os.Getenv(stackEnv)
+	if current == "" {
+		return fmt.Errorf("stack is empty")
+	}
+
+	parts := strings.Split(current, separator)
+	if len(parts) == 0 {
+		return fmt.Errorf("stack is empty")
+	}
+
+	popped := parts[len(parts)-1]
+	remaining := parts[:len(parts)-1]
+
+	if len(remaining) == 0 {
+		_ = os.Unsetenv(stackEnv)
+	} else {
+		_ = os.Setenv(stackEnv, strings.Join(remaining, separator))
+	}
+
+	fmt.Println(popped)
+	return nil
+}
+
+func doPrintStack(args []string) error {
+	current := os.Getenv(stackEnv)
+	if current == "" {
+		fmt.Println("Stack is empty.")
+		return nil
+	}
+
+	parts := strings.Split(current, separator)
+
+	// A few readable ANSI foreground colors (30–37, skipping black)
+	colors := []int{31, 32, 33, 34, 35, 36, 37}
+
+	for i, val := range parts {
+		color := colors[i%len(colors)]
+		fmt.Printf("\033[%dm[%d] %s\033[0m\n", color, i, val)
+	}
 	return nil
 }
 
