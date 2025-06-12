@@ -699,6 +699,9 @@ func doSleep(args []string) error {
 
 	// Convert to duration and sleep
 	duration := time.Duration(sleepTime * float64(time.Second))
+	if duration > (10 * time.Second) {
+		return fmt.Errorf("that's too long")
+	}
 	time.Sleep(duration)
 	return nil
 }
@@ -1163,6 +1166,72 @@ func doBirthday(args []string) error {
 	// TODO: Print out birthdays of family members
 
 	return fmt.Errorf("contact not found: %s", myName)
+}
+
+func doAge(args []string) error {
+	f, err := os.Open(contactsFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := vcard.NewDecoder(f)
+	for {
+		card, err := dec.Decode()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return err
+		}
+
+		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == myName {
+			bdayRaw := card.PreferredValue(vcard.FieldBirthday)
+			if bdayRaw == "" {
+				return fmt.Errorf("birthday not found for %s", myName)
+			}
+
+			bday, err := time.Parse("2006-01-02", bdayRaw)
+			if err != nil {
+				return fmt.Errorf("could not parse birthday: %s", bdayRaw)
+			}
+
+			now := time.Now()
+			age := now.Year() - bday.Year()
+			if now.Month() < bday.Month() || (now.Month() == bday.Month() && now.Day() < bday.Day()) {
+				age-- // hasn't had birthday yet this year
+			}
+
+			fmt.Printf("My age is: %d\n", age)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("contact not found: %s", myName)
+}
+
+func doCountdown(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please provide a starting number")
+	}
+
+	start, err := strconv.Atoi(args[0])
+	if err != nil || start < 0 {
+		return fmt.Errorf("invalid number: %s", args[0])
+	}
+
+	if start > 10 {
+		// This is so the kid doesn't lock themselves out of the command line forever.
+		return fmt.Errorf("that's too long")
+	}
+
+	for i := start; i >= 0; i-- {
+		// ANSI: clear line (\033[2K) and return carriage (\r)
+		fmt.Fprintf(os.Stdout, "\033[2K\r%d", i)
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Fprintf(os.Stdout, "\033[2K\rGo!\n")
+	return nil
 }
 
 var cmds = map[string]*Command{}

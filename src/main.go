@@ -389,6 +389,18 @@ func init() {
 		Description: "Display my birthday",
 		Func:        doBirthday,
 	})
+	registerCommand(Command{
+		Name:        "age",
+		Aliases:     []string{},
+		Description: "Display my age",
+		Func:        doAge,
+	})
+	registerCommand(Command{
+		Name:        "countdown",
+		Aliases:     []string{"tminus"},
+		Description: "Display a countdown",
+		Func:        doCountdown,
+	})
 }
 
 func main() {
