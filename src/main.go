@@ -347,6 +347,24 @@ func init() {
 		Description: "Display the contents of the stack",
 		Func:        doPrintStack,
 	})
+	registerCommand(Command{
+		Name:        "queue",
+		Aliases:     []string{},
+		Description: "Display the contents of the queue",
+		Func:        doPrintQueue,
+	})
+	registerCommand(Command{
+		Name:        "enqueue",
+		Aliases:     []string{},
+		Description: "Add something to the queue",
+		Func:        doEnqueue,
+	})
+	registerCommand(Command{
+		Name:        "dequeue",
+		Aliases:     []string{},
+		Description: "Remove the next item from the queue",
+		Func:        doDequeue,
+	})
 }
 
 func main() {

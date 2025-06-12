@@ -115,6 +115,7 @@ const (
 )
 
 const stackEnv = "KIDSH_STACK"
+const queueEnv = "KIDSH_QUEUE"
 const separator = "\x1E" // ASCII Record Separator (RS)
 
 type Command struct {
@@ -869,6 +870,65 @@ func doPrintStack(args []string) error {
 	parts := strings.Split(current, separator)
 
 	// A few readable ANSI foreground colors (30–37, skipping black)
+	colors := []int{31, 32, 33, 34, 35, 36, 37}
+
+	for i, val := range parts {
+		color := colors[i%len(colors)]
+		fmt.Printf("\033[%dm[%d] %s\033[0m\n", color, i, val)
+	}
+	return nil
+}
+
+func doEnqueue(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no values provided to enqueue")
+	}
+
+	current := os.Getenv(queueEnv)
+	newEntries := strings.Join(args, separator)
+
+	var newQueue string
+	if current == "" {
+		newQueue = newEntries
+	} else {
+		newQueue = current + separator + newEntries
+	}
+
+	return os.Setenv("KIDSH_QUEUE", newQueue)
+}
+
+func doDequeue(args []string) error {
+	current := os.Getenv(queueEnv)
+	if current == "" {
+		return fmt.Errorf("queue is empty")
+	}
+
+	parts := strings.Split(current, separator)
+	if len(parts) == 0 {
+		return fmt.Errorf("queue is empty")
+	}
+
+	dequeued := parts[0]
+	remaining := parts[1:]
+
+	if len(remaining) == 0 {
+		_ = os.Unsetenv(queueEnv)
+	} else {
+		_ = os.Setenv(queueEnv, strings.Join(remaining, separator))
+	}
+
+	fmt.Println(dequeued)
+	return nil
+}
+
+func doPrintQueue(args []string) error {
+	current := os.Getenv(queueEnv)
+	if current == "" {
+		fmt.Println("Queue is empty.")
+		return nil
+	}
+
+	parts := strings.Split(current, separator)
 	colors := []int{31, 32, 33, 34, 35, 36, 37}
 
 	for i, val := range parts {
