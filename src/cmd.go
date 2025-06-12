@@ -116,6 +116,7 @@ const (
 
 const stackEnv = "KIDSH_STACK"
 const queueEnv = "KIDSH_QUEUE"
+const todoFile = "todo.db"
 const separator = "\x1E" // ASCII Record Separator (RS)
 
 type Command struct {
@@ -935,6 +936,92 @@ func doPrintQueue(args []string) error {
 		color := colors[i%len(colors)]
 		fmt.Printf("\033[%dm[%d] %s\033[0m\n", color, i, val)
 	}
+	return nil
+}
+
+func readTodos() ([]string, error) {
+	data, err := os.ReadFile(todoFile)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	if len(data) == 0 {
+		return []string{}, nil
+	}
+	return strings.Split(string(data), separator), nil
+}
+
+func writeTodos(todos []string) error {
+	if len(todos) == 0 {
+		return os.Remove(todoFile)
+	}
+	return os.WriteFile(todoFile, []byte(strings.Join(todos, separator)), 0644)
+}
+
+func doTodo(args []string) error {
+	todos, err := readTodos()
+	if err != nil {
+		return err
+	}
+
+	if len(args) == 0 {
+		if len(todos) == 0 {
+			fmt.Println("No todos.")
+			return nil
+		}
+		colors := []int{31, 32, 33, 34, 35, 36, 37}
+		for i, val := range todos {
+			color := colors[i%len(colors)]
+			fmt.Printf("\033[%dm[%d] %s\033[0m\n", color, i, val)
+		}
+		return nil
+	}
+
+	newItem := strings.Join(args, " ")
+	todos = append(todos, newItem)
+	return writeTodos(todos)
+}
+
+func doDone(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("specify index or prefix to mark done")
+	}
+
+	todos, err := readTodos()
+	if err != nil {
+		return err
+	}
+
+	if len(todos) == 0 {
+		return fmt.Errorf("no todos to mark done")
+	}
+
+	target := strings.ToLower(strings.Join(args, " "))
+	idx := -1
+
+	// Try numeric index
+	if n, err := strconv.Atoi(target); err == nil && n >= 0 && n < len(todos) {
+		idx = n
+	} else {
+		// Try prefix match
+		for i, todo := range todos {
+			if strings.HasPrefix(strings.ToLower(todo), target) {
+				idx = i
+				break
+			}
+		}
+	}
+
+	if idx == -1 || idx >= len(todos) {
+		return fmt.Errorf("todo not found: %s", target)
+	}
+
+	done := todos[idx]
+	todos = append(todos[:idx], todos[idx+1:]...)
+	if err := writeTodos(todos); err != nil {
+		return err
+	}
+
+	fmt.Printf("Done: %s\n", done)
 	return nil
 }
 

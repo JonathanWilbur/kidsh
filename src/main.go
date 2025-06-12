@@ -365,6 +365,18 @@ func init() {
 		Description: "Remove the next item from the queue",
 		Func:        doDequeue,
 	})
+	registerCommand(Command{
+		Name:        "todo",
+		Aliases:     []string{},
+		Description: "Display the todo list or add something to it",
+		Func:        doTodo,
+	})
+	registerCommand(Command{
+		Name:        "done",
+		Aliases:     []string{},
+		Description: "Mark a todo item as done either by name or index",
+		Func:        doDone,
+	})
 }
 
 func main() {
