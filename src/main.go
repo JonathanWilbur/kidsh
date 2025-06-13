@@ -407,6 +407,24 @@ func init() {
 		Description: "Evaluate a Nock expression (prints 0 on error)",
 		Func:        doNock,
 	})
+	registerCommand(Command{
+		Name:        "repeat",
+		Aliases:     []string{},
+		Description: "Repeat the line the specified number of times",
+		Func:        doRepeat,
+	})
+	registerCommand(Command{
+		Name:        "subtract",
+		Aliases:     []string{"sub"},
+		Description: "Subtract one number from another",
+		Func:        doSubtract,
+	})
+	registerCommand(Command{
+		Name:        "countgame",
+		Aliases:     []string{},
+		Description: "Guess the number of Os",
+		Func:        doCountGame,
+	})
 }
 
 func main() {

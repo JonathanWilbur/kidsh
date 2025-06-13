@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -1242,6 +1244,67 @@ func doNock(args []string) error {
 	src := strings.Join(args, " ")
 	expr := nock.Parse(src)
 	fmt.Println(expr.String())
+	return nil
+}
+
+func doRepeat(args []string) error {
+	if len(args) < 2 {
+		return fmt.Errorf("usage: repeat <count> <text...>")
+	}
+
+	count, err := strconv.Atoi(args[0])
+	if err != nil || count < 0 {
+		return fmt.Errorf("invalid repeat count: %s", args[0])
+	}
+
+	line := strings.Join(args[1:], " ")
+	for i := 0; i < count; i++ {
+		fmt.Println(line)
+	}
+	return nil
+}
+
+func doSubtract(args []string) error {
+	if len(args) < 2 {
+		return fmt.Errorf("please provide two numbers: minuend subtrahend")
+	}
+
+	a, err1 := strconv.Atoi(args[0])
+	b, err2 := strconv.Atoi(args[1])
+	if err1 != nil || err2 != nil {
+		return fmt.Errorf("both arguments must be integers")
+	}
+
+	fmt.Println(a - b)
+	return nil
+}
+
+func doCountGame(args []string) error {
+	count := rand.Intn(9) + 1 // 1–9
+
+	// TODO: Format to be a little more readable
+	fmt.Println(strings.Repeat("O", count))
+
+	fmt.Print("How many Os? ")
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("failed to read input: %v", err)
+	}
+
+	input = strings.TrimSpace(input)
+	n, err := strconv.Atoi(input)
+	if err != nil {
+		fmt.Println("Please enter a number.")
+		return nil
+	}
+
+	// TODO: color
+	if n == count {
+		fmt.Println("That's correct!")
+	} else {
+		fmt.Println("That is incorrect.")
+	}
 	return nil
 }
 
