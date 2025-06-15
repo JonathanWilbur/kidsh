@@ -425,6 +425,12 @@ func init() {
 		Description: "Guess the number of Os",
 		Func:        doCountGame,
 	})
+	registerCommand(Command{
+		Name:        "news",
+		Aliases:     []string{},
+		Description: "Show the news",
+		Func:        doNews,
+	})
 }
 
 func main() {

@@ -16,6 +16,7 @@ import (
 
 	"github.com/emersion/go-vcard"
 	"github.com/lukechampine/nock"
+	"github.com/mmcdole/gofeed"
 )
 
 const (
@@ -239,6 +240,40 @@ func doCal(args []string) error {
 }
 
 func doNews(args []string) error {
+	rssURL := os.Getenv("KIDSH_RSS_URL")
+	if rssURL == "" {
+		return fmt.Errorf("KIDSH_RSS_URL environment variable not set")
+	}
+
+	fp := gofeed.NewParser()
+	feed, err := fp.ParseURL(rssURL)
+	if err != nil {
+		return fmt.Errorf("error parsing RSS feed: %v", err)
+	}
+
+	fmt.Printf("%sLatest News from %s%s\n\n", BoldGreenText, feed.Title, NormalText)
+	
+	// Show last 5 items
+	maxItems := 5
+	if len(feed.Items) < maxItems {
+		maxItems = len(feed.Items)
+	}
+
+	for i := 0; i < maxItems; i++ {
+		item := feed.Items[i]
+		fmt.Printf("%s%d. %s%s\n", BoldBlueText, i+1, item.Title, NormalText)
+		if item.Description != "" {
+			fmt.Printf("   %s\n", item.Description)
+		}
+		if item.Link != "" {
+			fmt.Printf("   %sLink: %s%s\n", FaintText, item.Link, NormalText)
+		}
+		if item.Published != "" {
+			fmt.Printf("   %sPublished: %s%s\n", FaintText, item.Published, NormalText)
+		}
+		fmt.Println()
+	}
+
 	return nil
 }
 
