@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"slices"
 	"sort"
 	"strconv"
@@ -18,6 +20,25 @@ import (
 	"github.com/lukechampine/nock"
 	"github.com/mmcdole/gofeed"
 )
+
+// BibleVerse represents a single verse from the Bible
+type BibleVerse struct {
+	BookID   string `json:"book_id"`
+	BookName string `json:"book_name"`
+	Chapter  int    `json:"chapter"`
+	Verse    int    `json:"verse"`
+	Text     string `json:"text"`
+}
+
+// BibleResponse represents the complete response from the Bible API
+type BibleResponse struct {
+	Reference       string       `json:"reference"`
+	Verses          []BibleVerse `json:"verses"`
+	Text            string       `json:"text"`
+	TranslationID   string       `json:"translation_id"`
+	TranslationName string       `json:"translation_name"`
+	TranslationNote string       `json:"translation_note"`
+}
 
 const (
 	Normal = iota
@@ -1340,6 +1361,217 @@ func doCountGame(args []string) error {
 	} else {
 		fmt.Println("That is incorrect.")
 	}
+	return nil
+}
+
+func isTextFile(data []byte) bool {
+	// Check first 512 bytes or entire file if smaller
+	checkLen := 512
+	if len(data) < checkLen {
+		checkLen = len(data)
+	}
+	
+	// If file is empty, consider it text
+	if checkLen == 0 {
+		return true
+	}
+
+	// Count printable ASCII characters
+	printableCount := 0
+	for i := 0; i < checkLen; i++ {
+		if data[i] >= 32 && data[i] <= 126 || data[i] == '\n' || data[i] == '\r' || data[i] == '\t' {
+			printableCount++
+		}
+	}
+
+	// If more than 80% of characters are printable, consider it text
+	return float64(printableCount)/float64(checkLen) > 0.8
+}
+
+func doCat(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please specify a file to display")
+	}
+
+	filename := args[0]
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("error reading file: %v", err)
+	}
+
+	if !isTextFile(data) {
+		return fmt.Errorf("warning: this appears to be a binary file. Use a different tool to view it.")
+	}
+
+	fmt.Print(string(data))
+	return nil
+}
+
+func doAnd(args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("and requires exactly 2 operands")
+	}
+	
+	op1 := isTruthy(args[0])
+	op2 := isTruthy(args[1])
+	
+	result := op1 && op2
+	fmt.Printf("%s AND %s = %s\n", args[0], args[1], boolToStr(result))
+	return nil
+}
+
+func doOr(args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("or requires exactly 2 operands")
+	}
+	
+	op1 := isTruthy(args[0])
+	op2 := isTruthy(args[1])
+	
+	result := op1 || op2
+	fmt.Printf("%s OR %s = %s\n", args[0], args[1], boolToStr(result))
+	return nil
+}
+
+func doXor(args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("xor requires exactly 2 operands")
+	}
+	
+	op1 := isTruthy(args[0])
+	op2 := isTruthy(args[1])
+	
+	result := op1 != op2
+	fmt.Printf("%s XOR %s = %s\n", args[0], args[1], boolToStr(result))
+	return nil
+}
+
+func doNot(args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("not requires exactly 1 operand")
+	}
+	
+	op := isTruthy(args[0])
+	result := !op
+	
+	fmt.Printf("NOT %s = %s\n", args[0], boolToStr(result))
+	return nil
+}
+
+func isTruthy(s string) bool {
+	s = strings.ToLower(strings.TrimSpace(s))
+	return s == "true" || s == "1"
+}
+
+func boolToStr(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+func doFamily(args []string) error {
+	return doCat([]string{"family.txt"})
+}
+
+func doBedtime(args []string) error {
+	now := time.Now()
+	// FIXME: get bedtime from config
+	bedtime := time.Date(now.Year(), now.Month(), now.Day(), 21, 0, 0, 0, now.Location())
+	
+	// If it's already past bedtime, show tomorrow's bedtime
+	if now.After(bedtime) {
+		bedtime = bedtime.Add(24 * time.Hour)
+	}
+	
+	timeUntilBedtime := bedtime.Sub(now)
+	hours := int(timeUntilBedtime.Hours())
+	minutes := int(timeUntilBedtime.Minutes()) % 60
+	
+	fmt.Printf("Bedtime is at %s\n", bedtime.Format("3:04 PM"))
+	fmt.Printf("Time until bedtime: %d hours and %d minutes\n", hours, minutes)
+	return nil
+}
+
+func doPrintOut(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("printOut requires at least one argument")
+	}
+	
+	// Concatenate all arguments with spaces
+	text := strings.Join(args, " ")
+	
+	// Create command to pipe to lpr
+	cmd := exec.Command("lpr")
+	cmd.Stdin = strings.NewReader(text)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	return cmd.Run()
+}
+
+func doSpeak(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("speak requires at least one argument")
+	}
+	
+	// Check if espeak is available
+	_, err := exec.LookPath("espeak")
+	if err != nil {
+		return fmt.Errorf("espeak command not found: %v", err)
+	}
+	
+	// Concatenate all arguments with spaces
+	text := strings.Join(args, " ")
+	
+	// Create command to invoke espeak
+	cmd := exec.Command("espeak", text)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	return cmd.Run()
+}
+
+func doBible(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("bible requires at least one argument")
+	}
+	
+	query := strings.Join(args, "+")
+	
+	// Create HTTP client with timeout
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	
+	// Make the request
+	resp, err := client.Get("https://bible-api.com/" + query)
+	if err != nil {
+		return fmt.Errorf("failed to make request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to make request: %s", resp.Status)
+	}
+	
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response: %v", err)
+	}
+	bibleResponse := BibleResponse{}
+	err = json.Unmarshal(body, &bibleResponse)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	for _, verse := range bibleResponse.Verses {
+		fmt.Printf("%s %d:%d\n", verse.BookName, verse.Chapter, verse.Verse)
+		fmt.Println(verse.Text)
+		fmt.Println()
+	}
+	
 	return nil
 }
 

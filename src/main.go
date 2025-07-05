@@ -431,6 +431,66 @@ func init() {
 		Description: "Show the news",
 		Func:        doNews,
 	})
+	registerCommand(Command{
+		Name:        "read",
+		Aliases:     []string{"cat"},
+		Description: "Read a file",
+		Func:        doCat,
+	})
+	registerCommand(Command{
+		Name:        "and",
+		Aliases:     []string{},
+		Description: "Logical AND",
+		Func:        doAnd,
+	})
+	registerCommand(Command{
+		Name:        "or",
+		Aliases:     []string{},
+		Description: "Logical OR",
+		Func:        doOr,
+	})
+	registerCommand(Command{
+		Name:        "xor",
+		Aliases:     []string{},
+		Description: "Logical XOR",
+		Func:        doXor,
+	})
+	registerCommand(Command{
+		Name:        "not",
+		Aliases:     []string{},
+		Description: "Logical NOT",
+		Func:        doNot,
+	})
+	registerCommand(Command{
+		Name:        "family",
+		Aliases:     []string{"fam"},
+		Description: "Display information about your family",
+		Func:        doFamily,
+	})
+	registerCommand(Command{
+		Name:        "bedtime",
+		Aliases:     []string{"bed"},
+		Description: "Display the bedtime",
+		Func:        doBedtime,
+	})
+	registerCommand(Command{
+		Name:        "printout",
+		Aliases:     []string{"printer"},
+		Description: "Print out a string to the printer",
+		Func:        doPrintOut,
+	})
+	registerCommand(Command{
+		Name:        "speak",
+		Aliases:     []string{},
+		Description: "Speak a string",
+		Func:        doSpeak,
+	})
+	registerCommand(Command{
+		Name:        "bible",
+		Aliases:     []string{},
+		Description: "Display a Bible verse",
+		Func:        doBible,
+	})
 }
 
 func main() {
