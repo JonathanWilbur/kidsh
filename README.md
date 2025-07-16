@@ -13,7 +13,7 @@ anything to mess up your computer.
 ## Build
 
 ```bash
-go build -o kidsh src/main.go src/cmd.go src/ansi.go
+go build -o kidsh src/main.go src/cmd.go src/ansi.go src/config.go
 ```
 
 ## Built-In Commands

@@ -144,18 +144,13 @@ const (
 const stackEnv = "KIDSH_STACK"
 const queueEnv = "KIDSH_QUEUE"
 
-// TODO: Make these files a full path given by an environment variable.
-const todoFile = "todo.db"
-const contactsFile = "contacts.vcf"
-const myName = "John Doe"
-
 const separator = "\x1E" // ASCII Record Separator (RS)
 
 type Command struct {
 	Name        string
 	Aliases     []string
 	Description string
-	Func        func([]string) error
+	Func        func(*Config, []string) error
 }
 
 func nextCurrAndPrev(i int, options []string) (string, string, string) {
@@ -168,20 +163,20 @@ func nextCurrAndPrev(i int, options []string) (string, string, string) {
 	return options[i-1], options[i], options[i+1]
 }
 
-func doDatetime(args []string) error {
+func doDatetime(config *Config, args []string) error {
 	now := time.Now()
 	formattedDateTime := now.Format("Monday, January 2, 2006 at 15:04:05 MST")
 	fmt.Printf("The date and time is now %s\n", formattedDateTime)
 	return nil
 }
 
-func doTime(args []string) error {
+func doTime(config *Config, args []string) error {
 	fmt.Print("The time is now ")
 	fmt.Println(time.Now().Format("15:04:05"))
 	return nil
 }
 
-func doDays(args []string) error {
+func doDays(config *Config, args []string) error {
 	days := []string{
 		highlightRed("Sunday"),
 		highlightYellow("Monday"),
@@ -202,7 +197,7 @@ func doDays(args []string) error {
 	return nil
 }
 
-func doMonths(args []string) error {
+func doMonths(config *Config, args []string) error {
 	months := []string{
 		highlightRed("January"),
 		highlightYellow("February"),
@@ -228,7 +223,7 @@ func doMonths(args []string) error {
 	return nil
 }
 
-func doCal(args []string) error {
+func doCal(config *Config, args []string) error {
 	now := time.Now()
 	year, month, day := now.Date()
 	firstDay := time.Date(year, month, 1, 0, 0, 0, 0, now.Location())
@@ -260,8 +255,8 @@ func doCal(args []string) error {
 	return nil
 }
 
-func doNews(args []string) error {
-	rssURL := os.Getenv("KIDSH_RSS_URL")
+func doNews(config *Config, args []string) error {
+	rssURL := config.RssUrl
 	if rssURL == "" {
 		return fmt.Errorf("KIDSH_RSS_URL environment variable not set")
 	}
@@ -273,7 +268,7 @@ func doNews(args []string) error {
 	}
 
 	fmt.Printf("%sLatest News from %s%s\n\n", BoldGreenText, feed.Title, NormalText)
-	
+
 	// Show last 5 items
 	maxItems := 5
 	if len(feed.Items) < maxItems {
@@ -298,30 +293,18 @@ func doNews(args []string) error {
 	return nil
 }
 
-func doMsg(args []string) error {
-	return nil
-}
-
-func doBday(args []string) error {
-	return nil
-}
-
-func doCalc(args []string) error {
-	return nil
-}
-
-func doBeep(args []string) error {
+func doBeep(config *Config, args []string) error {
 	os.Stdout.Write([]byte("Beep!\007\n"))
 	return nil
 }
 
-func doABC(args []string) error {
+func doABC(config *Config, args []string) error {
 	fmt.Println("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	fmt.Println("abcdefghijklmnopqrstuvwxyz")
 	return nil
 }
 
-func doNum(args []string) error {
+func doNum(config *Config, args []string) error {
 	fmt.Println("0123456789")
 	fmt.Println()
 	fmt.Println("0 = Zero")
@@ -349,7 +332,7 @@ func doNum(args []string) error {
 	return nil
 }
 
-func doHelp(args []string) error {
+func doHelp(config *Config, args []string) error {
 	sorted := make([]*Command, 0, len(cmds))
 	for name, cmd := range cmds {
 		if name != cmd.Name {
@@ -368,7 +351,7 @@ func doHelp(args []string) error {
 	return nil
 }
 
-func doColors(args []string) error {
+func doColors(config *Config, args []string) error {
 	red_line := highlightRed("Red")
 	yellow_line := highlightYellow("Yellow")
 	green_line := highlightGreen("Green")
@@ -388,7 +371,7 @@ func doColors(args []string) error {
 	return nil
 }
 
-func doExit(args []string) error {
+func doExit(config *Config, args []string) error {
 	if len(args) != 1 {
 		os.Exit(0)
 		return nil
@@ -401,13 +384,13 @@ func doExit(args []string) error {
 	return nil
 }
 
-func doDate(args []string) error {
+func doDate(config *Config, args []string) error {
 	fmt.Print("Today's date is ")
 	fmt.Println(time.Now().Format("Monday, January 2, 2006"))
 	return nil
 }
 
-func doCompare(args []string) error {
+func doCompare(config *Config, args []string) error {
 	if len(args) < 2 {
 		fmt.Println("You have to type in more than one number, silly!")
 		return nil
@@ -459,7 +442,7 @@ func doCompare(args []string) error {
 	return nil
 }
 
-func doCount(args []string) error {
+func doCount(config *Config, args []string) error {
 	if len(args) != 1 && (len(args) == 2 && args[0] != "to") {
 		fmt.Println("You have to tell me what number to count to, Silly!")
 		return nil
@@ -480,7 +463,7 @@ func doCount(args []string) error {
 	return nil
 }
 
-func doSortLex(args []string) error {
+func doSortLex(config *Config, args []string) error {
 	sort.Strings(args)
 	for _, s := range args {
 		fmt.Printf("%s ", s)
@@ -489,14 +472,14 @@ func doSortLex(args []string) error {
 	return nil
 }
 
-func doSort(args []string) error {
+func doSort(config *Config, args []string) error {
 	// Parse all arguments as integers
 	nums := make([]int, 0, len(args))
 	for _, arg := range args {
 		num, err := strconv.Atoi(arg)
 		if err != nil {
 			// If any fail, assume we want to do a lexicographic sort.
-			return doSortLex(args)
+			return doSortLex(config, args)
 		}
 		nums = append(nums, num)
 	}
@@ -514,7 +497,7 @@ func doSort(args []string) error {
 	return nil
 }
 
-func doUniq(args []string) error {
+func doUniq(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("no arguments provided to uniq command")
 	}
@@ -537,7 +520,7 @@ func doUniq(args []string) error {
 	return nil
 }
 
-func doPwd(args []string) error {
+func doPwd(config *Config, args []string) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %v", err)
@@ -546,7 +529,7 @@ func doPwd(args []string) error {
 	return nil
 }
 
-func doCd(args []string) error {
+func doCd(config *Config, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("exactly one argument required, got %d: %q", len(args), args)
 	}
@@ -557,7 +540,7 @@ func doCd(args []string) error {
 	return nil
 }
 
-func doLs(args []string) error {
+func doLs(config *Config, args []string) error {
 	files, err := os.ReadDir(".")
 	if err != nil {
 		return fmt.Errorf("failed to list directory contents: %v", err)
@@ -573,7 +556,7 @@ func doLs(args []string) error {
 	return nil
 }
 
-func doFirst(args []string) error {
+func doFirst(config *Config, args []string) error {
 	if len(args) == 0 {
 		fmt.Println("You need to supply an argument, silly!")
 		return nil
@@ -582,7 +565,7 @@ func doFirst(args []string) error {
 	return nil
 }
 
-func doLast(args []string) error {
+func doLast(config *Config, args []string) error {
 	if len(args) == 0 {
 		fmt.Println("you need to supply an argument, silly!")
 		return nil
@@ -592,7 +575,7 @@ func doLast(args []string) error {
 	return nil
 }
 
-func doRev(args []string) error {
+func doRev(config *Config, args []string) error {
 	slices.Reverse(args)
 	for _, arg := range args {
 		fmt.Printf("%s ", arg)
@@ -601,7 +584,7 @@ func doRev(args []string) error {
 	return nil
 }
 
-func doAdd(args []string) error {
+func doAdd(config *Config, args []string) error {
 	sum := 0
 	for _, arg := range args {
 		num, err := strconv.Atoi(arg)
@@ -614,7 +597,7 @@ func doAdd(args []string) error {
 	return nil
 }
 
-func doMultiply(args []string) error {
+func doMultiply(config *Config, args []string) error {
 	if len(args) < 1 {
 		fmt.Println("you need to supply an argument, silly!")
 		return nil
@@ -638,7 +621,7 @@ const DEFAULT_WEATHER_URL = "https://wttr.in/St.%20Johns,%20Florida?format=3&u"
 
 // const DEFAULT_WEATHER_URL = "https://wttr.in/St.%20Johns,%20Florida?2Anu"
 
-func doWeather(args []string) error {
+func doWeather(config *Config, args []string) error {
 	weatherUrl := os.Getenv("WEATHER_URL")
 	if len(weatherUrl) < 8 { // Could not be valid if smaller.
 		weatherUrl = DEFAULT_WEATHER_URL
@@ -656,7 +639,7 @@ func doWeather(args []string) error {
 	return nil
 }
 
-func doUpper(args []string) error {
+func doUpper(config *Config, args []string) error {
 	for i, arg := range args {
 		fmt.Print(strings.ToUpper(arg))
 		if i < len(args)-1 {
@@ -667,7 +650,7 @@ func doUpper(args []string) error {
 	return nil
 }
 
-func doLower(args []string) error {
+func doLower(config *Config, args []string) error {
 	for i, arg := range args {
 		fmt.Print(strings.ToLower(arg))
 		if i < len(args)-1 {
@@ -678,7 +661,7 @@ func doLower(args []string) error {
 	return nil
 }
 
-func doEnv(args []string) error {
+func doEnv(config *Config, args []string) error {
 	envVars := os.Environ()
 	sort.Strings(envVars)
 	for _, env := range envVars {
@@ -687,7 +670,7 @@ func doEnv(args []string) error {
 	return nil
 }
 
-func doShuffle(args []string) error {
+func doShuffle(config *Config, args []string) error {
 	shuffled := make([]string, len(args))
 	copy(shuffled, args)
 
@@ -707,7 +690,7 @@ func doShuffle(args []string) error {
 	return nil
 }
 
-func doRandom(args []string) error {
+func doRandom(config *Config, args []string) error {
 	max := 100 // Default max value
 
 	// If an argument is provided, use it as the max value
@@ -730,7 +713,7 @@ func doRandom(args []string) error {
 	return nil
 }
 
-func doFlip(args []string) error {
+func doFlip(config *Config, args []string) error {
 	source := time.Now().UnixNano()
 	result := "Tails"
 	if source%2 == 0 {
@@ -740,7 +723,7 @@ func doFlip(args []string) error {
 	return nil
 }
 
-func doSleep(args []string) error {
+func doSleep(config *Config, args []string) error {
 	// Default sleep time is 1 second
 	sleepTime := 1.0
 
@@ -765,14 +748,14 @@ func doSleep(args []string) error {
 	return nil
 }
 
-func doReset(args []string) error {
+func doReset(config *Config, args []string) error {
 	// ANSI escape sequence to reset the terminal
 	resetSequence := "\033c"
 	fmt.Print(resetSequence)
 	return nil
 }
 
-func doCompass(args []string) error {
+func doCompass(config *Config, args []string) error {
 	fmt.Println("   NW   N    NE  ")
 	fmt.Println("        |        ")
 	fmt.Println("   W ---+--- E   ")
@@ -791,7 +774,7 @@ func doCompass(args []string) error {
 	return nil
 }
 
-func doIp(args []string) error {
+func doIp(config *Config, args []string) error {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return fmt.Errorf("failed to get interface addresses: %v", err)
@@ -811,7 +794,7 @@ func doIp(args []string) error {
 	return nil
 }
 
-func doSeasons(args []string) error {
+func doSeasons(config *Config, args []string) error {
 	// Define emoji and colors for each season
 	spring := fmt.Sprintf("\033[42;37m Spring \033[0m") // Green background, white text
 	summer := fmt.Sprintf("\033[43;30m Summer \033[0m") // Yellow background, black text
@@ -851,7 +834,7 @@ func doSeasons(args []string) error {
 	return nil
 }
 
-func doUptime(args []string) error {
+func doUptime(config *Config, args []string) error {
 	// Read uptime info from /proc/uptime on Linux
 	data, err := os.ReadFile("/proc/uptime")
 	if err != nil {
@@ -888,7 +871,7 @@ func doUptime(args []string) error {
 	return nil
 }
 
-func doPush(args []string) error {
+func doPush(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("no values provided to push")
 	}
@@ -906,7 +889,7 @@ func doPush(args []string) error {
 	return os.Setenv(stackEnv, newStack)
 }
 
-func doPop(args []string) error {
+func doPop(config *Config, args []string) error {
 	current := os.Getenv(stackEnv)
 	if current == "" {
 		return fmt.Errorf("stack is empty")
@@ -930,7 +913,7 @@ func doPop(args []string) error {
 	return nil
 }
 
-func doPrintStack(args []string) error {
+func doPrintStack(config *Config, args []string) error {
 	current := os.Getenv(stackEnv)
 	if current == "" {
 		fmt.Println("Stack is empty.")
@@ -949,7 +932,7 @@ func doPrintStack(args []string) error {
 	return nil
 }
 
-func doEnqueue(args []string) error {
+func doEnqueue(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("no values provided to enqueue")
 	}
@@ -967,7 +950,7 @@ func doEnqueue(args []string) error {
 	return os.Setenv("KIDSH_QUEUE", newQueue)
 }
 
-func doDequeue(args []string) error {
+func doDequeue(config *Config, args []string) error {
 	current := os.Getenv(queueEnv)
 	if current == "" {
 		return fmt.Errorf("queue is empty")
@@ -991,7 +974,7 @@ func doDequeue(args []string) error {
 	return nil
 }
 
-func doPrintQueue(args []string) error {
+func doPrintQueue(config *Config, args []string) error {
 	current := os.Getenv(queueEnv)
 	if current == "" {
 		fmt.Println("Queue is empty.")
@@ -1008,8 +991,8 @@ func doPrintQueue(args []string) error {
 	return nil
 }
 
-func readTodos() ([]string, error) {
-	data, err := os.ReadFile(todoFile)
+func readTodos(config *Config) ([]string, error) {
+	data, err := os.ReadFile(config.TodoFile)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
@@ -1019,15 +1002,15 @@ func readTodos() ([]string, error) {
 	return strings.Split(string(data), separator), nil
 }
 
-func writeTodos(todos []string) error {
+func writeTodos(config *Config, todos []string) error {
 	if len(todos) == 0 {
-		return os.Remove(todoFile)
+		return os.Remove(config.TodoFile)
 	}
-	return os.WriteFile(todoFile, []byte(strings.Join(todos, separator)), 0644)
+	return os.WriteFile(config.TodoFile, []byte(strings.Join(todos, separator)), 0644)
 }
 
-func doTodo(args []string) error {
-	todos, err := readTodos()
+func doTodo(config *Config, args []string) error {
+	todos, err := readTodos(config)
 	if err != nil {
 		return err
 	}
@@ -1047,15 +1030,15 @@ func doTodo(args []string) error {
 
 	newItem := strings.Join(args, " ")
 	todos = append(todos, newItem)
-	return writeTodos(todos)
+	return writeTodos(config, todos)
 }
 
-func doDone(args []string) error {
+func doDone(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("specify index or prefix to mark done")
 	}
 
-	todos, err := readTodos()
+	todos, err := readTodos(config)
 	if err != nil {
 		return err
 	}
@@ -1086,7 +1069,7 @@ func doDone(args []string) error {
 
 	done := todos[idx]
 	todos = append(todos[:idx], todos[idx+1:]...)
-	if err := writeTodos(todos); err != nil {
+	if err := writeTodos(config, todos); err != nil {
 		return err
 	}
 
@@ -1094,8 +1077,8 @@ func doDone(args []string) error {
 	return nil
 }
 
-func doHomeAddress(args []string) error {
-	f, err := os.Open(contactsFile)
+func doHomeAddress(config *Config, args []string) error {
+	f, err := os.Open(config.ContactsVcfFile)
 	if err != nil {
 		return err
 	}
@@ -1111,7 +1094,7 @@ func doHomeAddress(args []string) error {
 			return err
 		}
 
-		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == myName {
+		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == config.MyName {
 			addresses := card[vcard.FieldAddress]
 			for _, a := range addresses {
 				if strings.Contains(strings.ToLower(a.Params.Get("TYPE")), "home") {
@@ -1164,15 +1147,15 @@ func doHomeAddress(args []string) error {
 					return nil
 				}
 			}
-			return fmt.Errorf("home address not found for %s", myName)
+			return fmt.Errorf("home address not found for %s", config.MyName)
 		}
 	}
 
-	return fmt.Errorf("contact not found: %s", myName)
+	return fmt.Errorf("contact not found: %s", config.MyName)
 }
 
-func doBirthday(args []string) error {
-	f, err := os.Open(contactsFile)
+func doBirthday(config *Config, args []string) error {
+	f, err := os.Open(config.ContactsVcfFile)
 	if err != nil {
 		return err
 	}
@@ -1188,10 +1171,10 @@ func doBirthday(args []string) error {
 			return err
 		}
 
-		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == myName {
+		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == config.MyName {
 			bdayRaw := card.PreferredValue(vcard.FieldBirthday)
 			if bdayRaw == "" {
-				return fmt.Errorf("birthday not found for %s", myName)
+				return fmt.Errorf("birthday not found for %s", config.MyName)
 			}
 
 			var bday time.Time
@@ -1224,11 +1207,11 @@ func doBirthday(args []string) error {
 
 	// TODO: Print out birthdays of family members
 
-	return fmt.Errorf("contact not found: %s", myName)
+	return fmt.Errorf("contact not found: %s", config.MyName)
 }
 
-func doAge(args []string) error {
-	f, err := os.Open(contactsFile)
+func doAge(config *Config, args []string) error {
+	f, err := os.Open(config.ContactsVcfFile)
 	if err != nil {
 		return err
 	}
@@ -1244,10 +1227,10 @@ func doAge(args []string) error {
 			return err
 		}
 
-		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == myName {
+		if fn := card.PreferredValue(vcard.FieldFormattedName); fn == config.MyName {
 			bdayRaw := card.PreferredValue(vcard.FieldBirthday)
 			if bdayRaw == "" {
-				return fmt.Errorf("birthday not found for %s", myName)
+				return fmt.Errorf("birthday not found for %s", config.MyName)
 			}
 
 			bday, err := time.Parse("2006-01-02", bdayRaw)
@@ -1266,10 +1249,10 @@ func doAge(args []string) error {
 		}
 	}
 
-	return fmt.Errorf("contact not found: %s", myName)
+	return fmt.Errorf("contact not found: %s", config.MyName)
 }
 
-func doCountdown(args []string) error {
+func doCountdown(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("please provide a starting number")
 	}
@@ -1293,7 +1276,7 @@ func doCountdown(args []string) error {
 	return nil
 }
 
-func doNock(args []string) error {
+func doNock(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("please provide a Nock expression")
 	}
@@ -1303,7 +1286,7 @@ func doNock(args []string) error {
 	return nil
 }
 
-func doRepeat(args []string) error {
+func doRepeat(config *Config, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: repeat <count> <text...>")
 	}
@@ -1320,7 +1303,7 @@ func doRepeat(args []string) error {
 	return nil
 }
 
-func doSubtract(args []string) error {
+func doSubtract(config *Config, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("please provide two numbers: minuend subtrahend")
 	}
@@ -1335,7 +1318,7 @@ func doSubtract(args []string) error {
 	return nil
 }
 
-func doCountGame(args []string) error {
+func doCountGame(config *Config, args []string) error {
 	count := rand.Intn(9) + 1 // 1–9
 
 	// TODO: Format to be a little more readable
@@ -1370,7 +1353,7 @@ func isTextFile(data []byte) bool {
 	if len(data) < checkLen {
 		checkLen = len(data)
 	}
-	
+
 	// If file is empty, consider it text
 	if checkLen == 0 {
 		return true
@@ -1388,7 +1371,7 @@ func isTextFile(data []byte) bool {
 	return float64(printableCount)/float64(checkLen) > 0.8
 }
 
-func doCat(args []string) error {
+func doCat(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("please specify a file to display")
 	}
@@ -1407,53 +1390,53 @@ func doCat(args []string) error {
 	return nil
 }
 
-func doAnd(args []string) error {
+func doAnd(config *Config, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("and requires exactly 2 operands")
 	}
-	
+
 	op1 := isTruthy(args[0])
 	op2 := isTruthy(args[1])
-	
+
 	result := op1 && op2
 	fmt.Printf("%s AND %s = %s\n", args[0], args[1], boolToStr(result))
 	return nil
 }
 
-func doOr(args []string) error {
+func doOr(config *Config, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("or requires exactly 2 operands")
 	}
-	
+
 	op1 := isTruthy(args[0])
 	op2 := isTruthy(args[1])
-	
+
 	result := op1 || op2
 	fmt.Printf("%s OR %s = %s\n", args[0], args[1], boolToStr(result))
 	return nil
 }
 
-func doXor(args []string) error {
+func doXor(config *Config, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("xor requires exactly 2 operands")
 	}
-	
+
 	op1 := isTruthy(args[0])
 	op2 := isTruthy(args[1])
-	
+
 	result := op1 != op2
 	fmt.Printf("%s XOR %s = %s\n", args[0], args[1], boolToStr(result))
 	return nil
 }
 
-func doNot(args []string) error {
+func doNot(config *Config, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("not requires exactly 1 operand")
 	}
-	
+
 	op := isTruthy(args[0])
 	result := !op
-	
+
 	fmt.Printf("NOT %s = %s\n", args[0], boolToStr(result))
 	return nil
 }
@@ -1470,80 +1453,80 @@ func boolToStr(b bool) string {
 	return "false"
 }
 
-func doFamily(args []string) error {
-	return doCat([]string{"family.txt"})
+func doFamily(config *Config, args []string) error {
+	return doCat(config, []string{"family.txt"})
 }
 
-func doBedtime(args []string) error {
+func doBedtime(config *Config, args []string) error {
 	now := time.Now()
 	// FIXME: get bedtime from config
 	bedtime := time.Date(now.Year(), now.Month(), now.Day(), 21, 0, 0, 0, now.Location())
-	
+
 	// If it's already past bedtime, show tomorrow's bedtime
 	if now.After(bedtime) {
 		bedtime = bedtime.Add(24 * time.Hour)
 	}
-	
+
 	timeUntilBedtime := bedtime.Sub(now)
 	hours := int(timeUntilBedtime.Hours())
 	minutes := int(timeUntilBedtime.Minutes()) % 60
-	
+
 	fmt.Printf("Bedtime is at %s\n", bedtime.Format("3:04 PM"))
 	fmt.Printf("Time until bedtime: %d hours and %d minutes\n", hours, minutes)
 	return nil
 }
 
-func doPrintOut(args []string) error {
+func doPrintOut(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("printOut requires at least one argument")
 	}
-	
+
 	// Concatenate all arguments with spaces
 	text := strings.Join(args, " ")
-	
+
 	// Create command to pipe to lpr
 	cmd := exec.Command("lpr")
 	cmd.Stdin = strings.NewReader(text)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
-func doSpeak(args []string) error {
+func doSpeak(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("speak requires at least one argument")
 	}
-	
+
 	// Check if espeak is available
 	_, err := exec.LookPath("espeak")
 	if err != nil {
 		return fmt.Errorf("espeak command not found: %v", err)
 	}
-	
+
 	// Concatenate all arguments with spaces
 	text := strings.Join(args, " ")
-	
+
 	// Create command to invoke espeak
 	cmd := exec.Command("espeak", text)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
-func doBible(args []string) error {
+func doBible(config *Config, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("bible requires at least one argument")
 	}
-	
+
 	query := strings.Join(args, "+")
-	
+
 	// Create HTTP client with timeout
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	
+
 	// Make the request
 	resp, err := client.Get("https://bible-api.com/" + query)
 	if err != nil {
@@ -1554,7 +1537,7 @@ func doBible(args []string) error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("failed to make request: %s", resp.Status)
 	}
-	
+
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -1571,13 +1554,21 @@ func doBible(args []string) error {
 		fmt.Println(verse.Text)
 		fmt.Println()
 	}
-	
+
 	return nil
 }
 
 var cmds = map[string]*Command{}
 
-func registerCommand(cmd Command) {
+func registerCommand(cmd Command, config *Config) {
+	if config.BlacklistedCommands[cmd.Name] {
+		return
+	}
+	for _, alias := range cmd.Aliases {
+		if config.BlacklistedCommands[alias] {
+			return
+		}
+	}
 	cmds[cmd.Name] = &cmd
 	for _, alias := range cmd.Aliases {
 		cmds[alias] = &cmd
