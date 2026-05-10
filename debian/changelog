@@ -1,0 +1,7 @@
+kidsh (1.0.0-1) unstable; urgency=medium
+
+  * Initial release
+  * Lightweight secure shell for young children
+  * Built-in commands for safe exploration
+
+ -- Jonathan <jonathan@example.com>  Mon, 01 Jan 2024 12:00:00 +0000 

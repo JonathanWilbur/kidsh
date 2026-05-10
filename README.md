@@ -16,28 +16,6 @@ anything to mess up your computer.
 go build -o kidsh src/main.go src/cmd.go src/ansi.go src/config.go
 ```
 
-## Built-In Commands
-
-The shortcut names of these commands is still up in the air, but the commands
-by their full names will be:
-
-- [ ] `news` - Fetches an RSS feed that you, the parent explicitly configure
-               before starting the shell.
-- [ ] `message` - Sends a message to somebody
-  - Send a message unencrypted to a parent-configured server as a UDP payload.
-- [ ] `birthdays` - Display birthdays
-- [ ] `calc` - A basic calculator
-- [ ] `fire` - Display a cozy fireplace
-- [ ] `bub` - Display bubbles
-- [ ] `notes` - Read notes
-- [ ] Games (You will be able to turn these off)
-    - [ ] `tetris` - Play Tetris
-    - [ ] `pacmac` - Play Pac-man
-    - [ ] `snake` - Play Snake
-
-There will probably be a lot more as I come up with ideas, but that gives you a
-feel for what this project is.
-
 ## Usage
 
 I expect users to full-screen the window where this shell is running so their

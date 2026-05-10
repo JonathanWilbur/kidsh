@@ -1,0 +1,20 @@
+Source: kidsh
+Section: utils
+Priority: optional
+Maintainer: Jonathan M. Wilbur <jonathan@wilbur.space>
+Build-Depends: debhelper (= 13), golang-go (>= 1.20)
+Standards-Version: 4.6.2
+Homepage: https://github.com/JonathanWilbur/kidsh
+
+Package: kidsh
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A lightweight secure shell for young children
+ Kid Shell is a lightweight and low-capability secure shell designed
+ for young children to safely explore computers. It provides simple
+ commands for basic tasks that children can understand, such as
+ displaying colors, showing days of the week, and taking notes.
+ .
+ The shell compiles as a static binary with only built-in commands,
+ ensuring that children cannot accidentally damage the system while
+ learning and having fun.

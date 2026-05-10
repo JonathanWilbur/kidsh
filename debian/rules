@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	rm -f kidsh
+
+override_dh_auto_build:
+	go build -o kidsh src/main.go src/cmd.go src/ansi.go src/config.go
+
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p debian/kidsh/usr/bin
+	cp kidsh debian/kidsh/usr/bin/
+	chmod 755 debian/kidsh/usr/bin/kidsh
+
+override_dh_dwz:
+	# Skip dwz compression for Go binaries
