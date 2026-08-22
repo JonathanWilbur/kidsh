@@ -1,0 +1,105 @@
+.TH KIDSH 1 "August 2026" "kidsh" "User Commands"
+.SH NAME
+kidsh \- lightweight secure shell for young children
+.SH SYNOPSIS
+.B kidsh
+[\fIoptions\fR]
+.SH DESCRIPTION
+.B kidsh
+(Kid Shell) is a lightweight, low-capability shell for young children
+to explore a computer safely. It offers simple built-in commands for
+easy tasks, such as showing colors or days of the week, or taking notes.
+It is meant to run in a dedicated full-screen terminal so children cannot
+easily leave the environment.
+.PP
+Built-in commands are not listed in this manual page; they can change
+independently of the packaged documentation. While the shell is running,
+type
+.B help
+for the current list.
+.SH OPTIONS
+.TP
+.B \-version
+Print the version and exit.
+.TP
+.B \-v
+Verbose output.
+.TP
+.B \-e
+Exit on error.
+.TP
+.B \-n
+Dry-run; do not execute commands.
+.SH COMMANDS
+.TP
+.BR help " (" helpme ", " cmds ")"
+Print every built-in command, its aliases, and a short description.
+.TP
+.BR quit " (" exit ")"
+Leave the shell.
+.SH CONFIGURATION
+Optional JSON configuration is read from the first readable file among:
+.IP \(bu 2
+the path in the
+.B KIDSH_CONFIG
+environment variable, if set
+.IP \(bu 2
+.IR $XDG_CONFIG_HOME/kidsh/config.json ,
+or
+.I ~/.config/kidsh/config.json
+if
+.B XDG_CONFIG_HOME
+is unset
+.IP \(bu 2
+.I $SNAP/etc/kidsh.json
+when running as a Snap
+.IP \(bu 2
+.I /etc/kidsh.json
+.IP \(bu 2
+.I /etc/kidsh/config.json
+.PP
+Packages also ship this example as
+.I kidsh.json.example
+in the documentation directory (typically
+.IR /usr/share/doc/kidsh/ ):
+.PP
+.nf
+.RS
+{
+  "rssUrl": "",
+  "contactsVcfFile": "",
+  "familyInfoFile": "",
+  "bedtimeHour": 21,
+  "bedtimeMinute": 0,
+  "blacklistedCommands": [],
+  "todoFile": "",
+  "myName": ""
+}
+.RE
+.fi
+.PP
+The
+.B myName
+setting is significant. It is important to set this name to the name used for
+the user in the
+.B contactsVcfFile
+match so that shell commands can know who the user is.
+.SH NOTES
+The interface is English only. Output uses ANSI escape sequences for
+colors; a color-capable terminal is expected.
+.SH HOMEPAGE
+The homepage for this project is
+.UR https://github.com/JonathanWilbur/kidsh
+.UE
+\&.
+.SH BUGS
+Report bugs on the GitHub issues tab at
+.UR https://github.com/JonathanWilbur/kidsh/issues
+.UE
+\&.
+.SH AUTHOR
+Jonathan M. Wilbur <jonathan@wilbur.space>
+.SH COPYRIGHT
+MIT License. See
+.I LICENSE.txt
+in the source distribution.

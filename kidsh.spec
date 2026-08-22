@@ -51,11 +51,13 @@ fi
 
 %install
 install -D -m 755 kidsh %{buildroot}%{_bindir}/kidsh
+install -D -m 644 man/kidsh.1 %{buildroot}%{_mandir}/man1/kidsh.1
 
 %files
 %license LICENSE.txt
 %doc README.md packaging/kidsh.json.example
 %{_bindir}/kidsh
+%{_mandir}/man1/kidsh.1*
 
 %changelog
 * Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.0-1

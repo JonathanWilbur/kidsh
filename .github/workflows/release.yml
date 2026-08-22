@@ -53,9 +53,9 @@ jobs:
             CGO_ENABLED=0 GOOS=linux GOARCH="$GOARCH" go build -trimpath \
               -ldflags "-s -w -X main.version=${VERSION}" -o kidsh ./src
             stage="$(mktemp -d)"
-            cp kidsh README.md LICENSE.txt "$stage/"
+            cp kidsh README.md LICENSE.txt man/kidsh.1 "$stage/"
             tar -C "$stage" -czf "dist/kidsh-${VERSION}-linux-${GOARCH}.tar.gz" \
-              kidsh README.md LICENSE.txt
+              kidsh README.md LICENSE.txt kidsh.1
             rm -rf "$stage" kidsh
           done
       - uses: actions/upload-artifact@v7
@@ -82,17 +82,17 @@ jobs:
             codesign --force --sign - "kidsh-${GOARCH}" || true
             stage="$(mktemp -d)"
             cp "kidsh-${GOARCH}" "$stage/kidsh"
-            cp README.md LICENSE.txt "$stage/"
+            cp README.md LICENSE.txt man/kidsh.1 "$stage/"
             tar -C "$stage" -czf "dist/kidsh-${VERSION}-darwin-${GOARCH}.tar.gz" \
-              kidsh README.md LICENSE.txt
+              kidsh README.md LICENSE.txt kidsh.1
             rm -rf "$stage"
           done
           lipo -create -output kidsh kidsh-arm64 kidsh-amd64
           codesign --force --sign - kidsh || true
           stage="$(mktemp -d)"
-          cp kidsh README.md LICENSE.txt "$stage/"
+          cp kidsh README.md LICENSE.txt man/kidsh.1 "$stage/"
           tar -C "$stage" -czf "dist/kidsh-${VERSION}-darwin-universal.tar.gz" \
-            kidsh README.md LICENSE.txt
+            kidsh README.md LICENSE.txt kidsh.1
       - uses: actions/upload-artifact@v7
         with:
           name: archives-darwin

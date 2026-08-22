@@ -45,6 +45,7 @@ modules:
       - install -Dm644 packaging/flatpak/io.github.jonathanwilbur.kidsh.desktop /app/share/applications/io.github.jonathanwilbur.kidsh.desktop
       - install -Dm644 packaging/flatpak/io.github.jonathanwilbur.kidsh.metainfo.xml /app/share/metainfo/io.github.jonathanwilbur.kidsh.metainfo.xml
       - install -Dm644 packaging/kidsh.json.example /app/share/doc/kidsh/kidsh.json.example
+      - install -Dm644 man/kidsh.1 /app/share/man/man1/kidsh.1
     sources:
       - type: dir
         path: ../..
