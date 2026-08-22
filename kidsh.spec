@@ -32,19 +32,21 @@ export GOARCH=%{go_arch}
 %endif
 %if 0%{?go_sysroot:1}
 export CGO_CFLAGS="${CGO_CFLAGS:+${CGO_CFLAGS} }--sysroot=%{go_sysroot}"
-export CGO_LDFLAGS="${CGO_LDFLAGS:+${CGO_LDFLAGS} }--sysroot=%{go_sysroot}"
+# Fedora's cross GCC 16 *lib spec always passes -latomic_asneeded, but the
+# kernel-oriented *-linux-gnu toolchain does not ship that virtual library.
+export CGO_LDFLAGS="${CGO_LDFLAGS:+${CGO_LDFLAGS} }--sysroot=%{go_sysroot} -fno-link-libatomic"
 %endif
 go build -trimpath -buildvcs=false -ldflags "-s -w -X main.version=%{version}" -o kidsh ./src
 
 %check
-export CGO_ENABLED=1
 native="$(go env GOHOSTARCH)"
 %if 0%{?go_arch:1}
 target="%{go_arch}"
 %else
 target="$(go env GOARCH)"
 %endif
-GOARCH="$native" go test -buildvcs=false ./...
+# rpmbuild --target sets CC to the cross compiler; tests run on the host.
+CGO_ENABLED=1 CC=gcc GOARCH="$native" go test -buildvcs=false ./...
 if [ "$target" = "$native" ]; then
   ./kidsh -version
 fi
