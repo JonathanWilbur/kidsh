@@ -22,21 +22,12 @@ apps:
       - network
       - home
 
-layout:
-  /etc/kidsh.json:
-    bind-file: $SNAP/etc/kidsh.json
-
 parts:
   kidsh:
     plugin: go
     source: .
     build-snaps:
       - go/latest/stable
-    build-packages:
-      - gcc
-      - libc6-dev
-    override-build: |
-      mkdir -p "${SNAPCRAFT_PART_INSTALL}/bin" "${SNAPCRAFT_PART_INSTALL}/etc"
-      go build -trimpath -ldflags "-s -w -X main.version=${SNAPCRAFT_PROJECT_VERSION}" \
-        -o "${SNAPCRAFT_PART_INSTALL}/bin/kidsh" ./src
-      cp packaging/kidsh.json.example "${SNAPCRAFT_PART_INSTALL}/etc/kidsh.json"
+    # Main package is ./src, so `go install ./...` names the binary "src".
+    organize:
+      bin/src: bin/kidsh
