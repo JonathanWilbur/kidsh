@@ -24,13 +24,13 @@ jobs:
     needs: meta
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Create source tarball
         run: |
           git archive --format=tar.gz \
             --prefix="kidsh-${{ needs.meta.outputs.version }}/" \
             -o "kidsh-${{ needs.meta.outputs.version }}.tar.gz" HEAD
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: source
           path: kidsh-${{ needs.meta.outputs.version }}.tar.gz
@@ -38,10 +38,10 @@ jobs:
 
   archives:
     needs: meta
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Build Linux archives
@@ -49,6 +49,7 @@ jobs:
           VERSION="${{ needs.meta.outputs.version }}"
           mkdir -p dist
           for GOARCH in amd64 arm64 riscv64; do
+            # Static: tarballs must run on distros with older glibc than the builder.
             CGO_ENABLED=0 GOOS=linux GOARCH="$GOARCH" go build -trimpath \
               -ldflags "-s -w -X main.version=${VERSION}" -o kidsh ./src
             stage="$(mktemp -d)"
@@ -57,7 +58,7 @@ jobs:
               kidsh README.md LICENSE.txt
             rm -rf "$stage" kidsh
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: archives-linux
           path: dist/*.tar.gz
@@ -67,8 +68,8 @@ jobs:
     needs: meta
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Build macOS binaries
@@ -92,7 +93,7 @@ jobs:
           cp kidsh README.md LICENSE.txt "$stage/"
           tar -C "$stage" -czf "dist/kidsh-${VERSION}-darwin-universal.tar.gz" \
             kidsh README.md LICENSE.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: archives-darwin
           path: dist/*.tar.gz
@@ -100,20 +101,26 @@ jobs:
 
   debian:
     needs: meta
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
-        debian_arch: [amd64, arm64, riscv64]
+        include:
+          - debian_arch: amd64
+            extra_apt: ""
+          - debian_arch: arm64
+            extra_apt: gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+          - debian_arch: riscv64
+            extra_apt: gcc-riscv64-linux-gnu libc6-dev-riscv64-cross
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Install Debian build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y debhelper devscripts build-essential ca-certificates
+          sudo apt-get install -y debhelper devscripts build-essential ca-certificates ${{ matrix.extra_apt }}
       - name: Set package version
         run: bash packaging/scripts/set-version.sh "${{ needs.meta.outputs.version }}"
       - name: Build .deb
@@ -121,7 +128,7 @@ jobs:
           dpkg-buildpackage -us -uc -b -d -a "${{ matrix.debian_arch }}"
           mkdir -p dist
           mv ../*.deb dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: debian-${{ matrix.debian_arch }}
           path: dist/*.deb
@@ -141,8 +148,8 @@ jobs:
           - goarch: riscv64
             rpm_arch: riscv64
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: source
           path: .
@@ -158,7 +165,7 @@ jobs:
             -w /src \
             fedora:latest \
             bash packaging/scripts/build-rpm.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: rpm-${{ matrix.rpm_arch }}
           path: "*.rpm"
@@ -166,25 +173,33 @@ jobs:
 
   alpine:
     needs: [meta, source]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - goarch: amd64
-            carch: x86_64
-          - goarch: arm64
-            carch: aarch64
-          - goarch: riscv64
-            carch: riscv64
+          - carch: x86_64
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - carch: aarch64
+            platform: linux/arm64
+            runner: ubuntu-26.04-arm
+          - carch: riscv64
+            platform: linux/riscv64
+            runner: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: source
           path: .
       - name: Set package version
         run: bash packaging/scripts/set-version.sh "${{ needs.meta.outputs.version }}"
+      - name: Set up QEMU
+        if: matrix.carch == 'riscv64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: riscv64
       - name: Load Alpine signing key
         env:
           ALPINE_ABUILD_PRIVKEY: ${{ secrets.ALPINE_ABUILD_PRIVKEY }}
@@ -201,9 +216,8 @@ jobs:
           ALPINE_ABUILD_KEY_NAME: ${{ vars.ALPINE_ABUILD_KEY_NAME }}
         run: |
           KEY_NAME="${ALPINE_ABUILD_KEY_NAME:-kidsh@wilbur.space.rsa}"
-          docker run --rm \
+          docker run --rm --platform "${{ matrix.platform }}" \
             -e VERSION="${{ needs.meta.outputs.version }}" \
-            -e GOARCH="${{ matrix.goarch }}" \
             -e CARCH="${{ matrix.carch }}" \
             -e ALPINE_ABUILD_KEY_NAME="$KEY_NAME" \
             -e ALPINE_ABUILD_PRIVKEY_FILE=/run/secrets/abuild.rsa \
@@ -213,12 +227,12 @@ jobs:
             alpine:latest \
             sh packaging/scripts/build-apk.sh
           rm -f alpine-abuild.rsa
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: alpine-${{ matrix.carch }}
           path: "*.apk"
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.carch == 'x86_64'
         with:
           name: alpine-signing-key
@@ -239,8 +253,8 @@ jobs:
           - goarch: riscv64
             carch: riscv64
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: source
           path: .
@@ -256,7 +270,7 @@ jobs:
             -w /src \
             archlinux:latest \
             bash packaging/scripts/build-arch.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: arch-${{ matrix.carch }}
           path: "*.pkg.tar.zst"
@@ -268,18 +282,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-24.04
+          - runner: ubuntu-26.04
             arch: amd64
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-26.04-arm
             arch: arm64
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set package version
         run: bash packaging/scripts/set-version.sh "${{ needs.meta.outputs.version }}"
       - uses: snapcore/action-build@v1
         id: snapcraft
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: kidsh-${{ needs.meta.outputs.version }}-${{ matrix.arch }}
           path: ${{ steps.snapcraft.outputs.snap }}
@@ -291,16 +305,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-24.04
+          - runner: ubuntu-26.04
             arch: x86_64
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-26.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runner }}
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set package version
         run: bash packaging/scripts/set-version.sh "${{ needs.meta.outputs.version }}"
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
@@ -311,7 +325,7 @@ jobs:
           arch: ${{ matrix.arch }}
           run-tests: true
           upload-artifact: false
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: flatpak-${{ matrix.arch }}
           path: kidsh-${{ matrix.arch }}.flatpak
@@ -321,8 +335,8 @@ jobs:
     needs: [meta, source]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: source
           path: .
@@ -333,7 +347,7 @@ jobs:
             "${{ needs.meta.outputs.version }}" \
             "${{ needs.meta.outputs.tag }}" \
             "${SHA256}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: homebrew
           path: kidsh.rb
@@ -355,7 +369,7 @@ jobs:
     if: ${{ always() && !cancelled() && needs.meta.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
@@ -370,7 +384,7 @@ jobs:
           fi
           sha256sum * > SHA256SUMS
           ls -la
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.meta.outputs.tag }}
           files: artifacts/*

@@ -29,6 +29,11 @@ fi
 pacman -Sy --noconfirm archlinux-keyring
 pacman -Syu --noconfirm --needed base-devel go git
 
+if [[ "${CARCH}" != "$(uname -m)" ]]; then
+  pacman -S --noconfirm --needed "${CARCH}-linux-gnu-gcc"
+  export CC="${CARCH}-linux-gnu-gcc"
+fi
+
 if ! id packager >/dev/null 2>&1; then
   useradd -m packager
 fi
@@ -41,7 +46,11 @@ cp "${TARBALL}" "${WORKDIR}/"
 sed -i "s/^pkgver=.*/pkgver=${VERSION}/" "${WORKDIR}/PKGBUILD"
 chown -R packager:packager "${WORKDIR}"
 
-su packager -c "cd '${WORKDIR}' && CARCH='${CARCH}' GOARCH='${GOARCH}' makepkg -f --noconfirm"
+MAKEPKG_ENV="CARCH='${CARCH}' GOARCH='${GOARCH}'"
+if [[ -n "${CC:-}" ]]; then
+  MAKEPKG_ENV="${MAKEPKG_ENV} CC='${CC}'"
+fi
+su packager -c "cd '${WORKDIR}' && ${MAKEPKG_ENV} makepkg -f --noconfirm"
 
 find "${WORKDIR}" -maxdepth 1 -name '*.pkg.tar.zst' -exec cp {} "${ROOT}/" \;
 find "${ROOT}" -maxdepth 1 -name '*.pkg.tar.zst' -print

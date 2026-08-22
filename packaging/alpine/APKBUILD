@@ -7,24 +7,20 @@ url="https://github.com/JonathanWilbur/kidsh"
 arch="x86_64 aarch64 riscv64"
 license="MIT"
 makedepends="go"
-# Static Go binary; !tracedeps avoids apk-tools 3 rejecting --who-owns.
-options="net chmod-clean !strip !tracedeps"
+options="net chmod-clean !strip"
 source="$pkgname-$pkgver.tar.gz"
 
-export CGO_ENABLED=0
 export GOFLAGS="$GOFLAGS -trimpath"
+# Build for the abuild host; PIE uses the C linker and cannot be Go-cross-compiled here.
+unset GOARCH
 
 build() {
-	export GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
 	go build -ldflags "-s -w -X main.version=$pkgver" -o kidsh ./src
 }
 
 check() {
-	native="$(go env GOHOSTARCH)"
-	GOARCH="$native" go test ./...
-	if [ "$(go env GOARCH)" = "$native" ]; then
-		./kidsh -version
-	fi
+	go test ./...
+	./kidsh -version
 }
 
 package() {

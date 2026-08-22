@@ -3,10 +3,10 @@
 This is a lightweight / low-capability secure shell for young children to fool
 around on a computer. It has simple commands for doing easy tasks in a simple
 way that children can understand, such as pressing `c` to display colors, or
-`d` to display days of the week, or `n` to take notes. It compiles as a static
-binary that only supports built-ins, and (not implemented yet) it will be able
-to ran with dropped capabilities, so your little one cannot accidentally do
-anything to mess up your computer.
+`d` to display days of the week, or `n` to take notes. It only supports
+built-ins, and (not implemented yet) it will be able to ran with dropped
+capabilities, so your little one cannot accidentally do anything to mess up
+your computer.
 
 ## Build
 

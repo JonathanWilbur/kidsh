@@ -1,5 +1,6 @@
 #!/bin/sh
-# Build a signed Alpine apk from packaging/alpine/APKBUILD. Intended to run inside Alpine.
+# Build a signed Alpine apk from packaging/alpine/APKBUILD.
+# Intended to run inside Alpine on the target architecture (use docker --platform).
 set -eu
 
 VERSION="${VERSION:?VERSION is required}"
@@ -7,21 +8,14 @@ ROOT="$(pwd)"
 TARBALL="${ROOT}/kidsh-${VERSION}.tar.gz"
 KEY_NAME="${ALPINE_ABUILD_KEY_NAME:-kidsh@wilbur.space.rsa}"
 PRIVKEY_SRC="${ALPINE_ABUILD_PRIVKEY_FILE:-}"
-CARCH="${CARCH:-}"
-GOARCH="${GOARCH:-}"
-
-if [ -z "${CARCH}" ]; then
-  CARCH="$(uname -m)"
+CARCH="${CARCH:-$(uname -m)}"
+HOST_ARCH="$(uname -m)"
+if [ "${CARCH}" != "${HOST_ARCH}" ]; then
+  echo "Alpine packages are built natively (cgo PIE). Container is ${HOST_ARCH}, requested CARCH=${CARCH}." >&2
+  echo "Run this script in an Alpine image for ${CARCH} (docker --platform)." >&2
+  exit 1
 fi
-if [ -z "${GOARCH}" ]; then
-  case "${CARCH}" in
-    x86_64) GOARCH=amd64 ;;
-    aarch64) GOARCH=arm64 ;;
-    riscv64) GOARCH=riscv64 ;;
-    *) GOARCH="${CARCH}" ;;
-  esac
-fi
-export CARCH GOARCH
+export CARCH
 
 if [ ! -f "${TARBALL}" ]; then
   echo "missing source tarball: ${TARBALL}" >&2
@@ -70,7 +64,7 @@ cp "${TARBALL}" "${WORKDIR}/"
 sed -i "s/^pkgver=.*/pkgver=${VERSION}/" "${WORKDIR}/APKBUILD"
 chown -R packager:packager /home/packager
 
-su packager -c "cd '${WORKDIR}' && CARCH='${CARCH}' GOARCH='${GOARCH}' abuild checksum && CARCH='${CARCH}' GOARCH='${GOARCH}' abuild -r"
+su packager -c "cd '${WORKDIR}' && CARCH='${CARCH}' abuild checksum && CARCH='${CARCH}' abuild -r"
 
 find /home/packager/packages -name 'kidsh-*.apk' ! -name '*-dev-*' ! -name '*-doc-*' -exec cp {} "${ROOT}/" \;
 find "${ROOT}" -maxdepth 1 -name '*.apk' -print

@@ -32,8 +32,10 @@ parts:
     source: .
     build-snaps:
       - go/latest/stable
+    build-packages:
+      - gcc
+      - libc6-dev
     override-build: |
-      export CGO_ENABLED=0
       mkdir -p "${SNAPCRAFT_PART_INSTALL}/bin" "${SNAPCRAFT_PART_INSTALL}/etc"
       go build -trimpath -ldflags "-s -w -X main.version=${SNAPCRAFT_PROJECT_VERSION}" \
         -o "${SNAPCRAFT_PART_INSTALL}/bin/kidsh" ./src

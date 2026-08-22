@@ -2,10 +2,12 @@
 
 include /usr/share/dpkg/architecture.mk
 
-export CGO_ENABLED = 0
+export CGO_ENABLED = 1
 export GO111MODULE = on
 export GOOS = linux
 export GOARCH = $(DEB_HOST_ARCH)
+export CC = $(DEB_HOST_GNU_TYPE)-gcc
+export CXX = $(DEB_HOST_GNU_TYPE)-g++
 
 VERSION := $(shell dpkg-parsechangelog -S Version | cut -d- -f1)
 
@@ -19,7 +21,7 @@ override_dh_auto_build:
 	go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o kidsh ./src
 
 override_dh_auto_test:
-	GOARCH=$(DEB_BUILD_ARCH) go test ./...
+	GOARCH=$(DEB_BUILD_ARCH) CGO_ENABLED=1 CC=$(DEB_BUILD_GNU_TYPE)-gcc go test ./...
 ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
 	@echo "skipping target binary smoke test on cross-build ($(DEB_HOST_ARCH))"
 else
@@ -36,8 +38,9 @@ override_dh_strip:
 	# Go binary is already stripped via -ldflags -s -w
 
 override_dh_makeshlibs:
-	# Static Go binary; no shared libraries. Cross-builds also lack
-	# ${DEB_HOST_GNU_TYPE}-objdump (e.g. aarch64-linux-gnu-objdump).
+	# This package does not ship shared libraries.
 
+ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
 override_dh_shlibdeps:
-	# Static Go binary; no shlibs:Depends
+	dh_shlibdeps -- -l/usr/$(DEB_HOST_GNU_TYPE)/lib
+endif

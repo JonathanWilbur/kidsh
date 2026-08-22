@@ -6,6 +6,7 @@ pkgdesc="A lightweight secure shell for young children"
 arch=('x86_64' 'aarch64' 'riscv64')
 url="https://github.com/JonathanWilbur/kidsh"
 license=('MIT')
+depends=('glibc')
 makedepends=('go')
 options=(!debug !strip)
 source=("$pkgname-$pkgver.tar.gz")
@@ -13,14 +14,14 @@ sha256sums=('SKIP')
 
 build() {
   cd "$pkgname-$pkgver"
-  export CGO_ENABLED=0
+  export CGO_ENABLED=1
   export GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
   go build -trimpath -ldflags "-s -w -X main.version=$pkgver" -o kidsh ./src
 }
 
 check() {
   cd "$pkgname-$pkgver"
-  export CGO_ENABLED=0
+  export CGO_ENABLED=1
   native="$(go env GOHOSTARCH)"
   GOARCH="$native" go test ./...
   if [ "$(go env GOARCH)" = "$native" ]; then
