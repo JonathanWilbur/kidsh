@@ -34,3 +34,10 @@ override_dh_dwz:
 
 override_dh_strip:
 	# Go binary is already stripped via -ldflags -s -w
+
+override_dh_makeshlibs:
+	# Static Go binary; no shared libraries. Cross-builds also lack
+	# ${DEB_HOST_GNU_TYPE}-objdump (e.g. aarch64-linux-gnu-objdump).
+
+override_dh_shlibdeps:
+	# Static Go binary; no shlibs:Depends
