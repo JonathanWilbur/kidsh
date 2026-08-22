@@ -51,5 +51,5 @@ install -D -m 755 kidsh %{buildroot}%{_bindir}/kidsh
 %{_bindir}/kidsh
 
 %changelog
-* Fri Aug 21 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.0-1
+* Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.0-1
 - Initial packaging
