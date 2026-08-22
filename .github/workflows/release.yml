@@ -352,15 +352,22 @@ jobs:
       - snap
       - flatpak
       - homebrew
+    if: ${{ always() && !cancelled() && needs.meta.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
+          if-no-artifact-found: ignore
       - name: Checksums
         run: |
+          mkdir -p artifacts
           cd artifacts
+          if [ -z "$(ls -A .)" ]; then
+            echo "No package artifacts were produced; nothing to attach to the release." >&2
+            exit 1
+          fi
           sha256sum * > SHA256SUMS
           ls -la
       - uses: softprops/action-gh-release@v2
