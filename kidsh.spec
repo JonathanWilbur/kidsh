@@ -28,7 +28,7 @@ export GOOS=linux
 %if 0%{?go_arch:1}
 export GOARCH=%{go_arch}
 %endif
-go build -trimpath -ldflags "-s -w -X main.version=%{version}" -o kidsh ./src
+go build -trimpath -buildvcs=false -ldflags "-s -w -X main.version=%{version}" -o kidsh ./src
 
 %check
 export CGO_ENABLED=0
@@ -37,7 +37,7 @@ export GOARCH=%{go_arch}
 %endif
 native="$(go env GOHOSTARCH)"
 target="$(go env GOARCH)"
-GOARCH="$native" go test ./...
+GOARCH="$native" go test -buildvcs=false ./...
 if [ "$target" = "$native" ]; then
   ./kidsh -version
 fi
