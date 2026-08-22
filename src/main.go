@@ -145,7 +145,7 @@ func registerCommands(config *Config) {
 		Description: "Make a beep sound",
 		Func:        doBeep,
 	}, config)
-	registerCommand(Command{ // TODO: about calling 911
+	registerCommand(Command{
 		Name:        "help",
 		Aliases:     []string{"helpme", "cmds"},
 		Description: "Display all commands, aliases, and descriptions",

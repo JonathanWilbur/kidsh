@@ -1154,6 +1154,61 @@ func doHomeAddress(config *Config, args []string) error {
 	return fmt.Errorf("contact not found: %s", config.MyName)
 }
 
+func printBirthday(bdayRaw string) {
+	var bday time.Time
+	var parsed bool
+
+	// Try full date first
+	if t, err := time.Parse("2006-01-02", bdayRaw); err == nil {
+		bday = t
+		parsed = true
+	} else if t, err := time.Parse("--01-02", bdayRaw); err == nil {
+		// vCard 4.0 allows partial date like --MM-DD
+		bday = t
+		parsed = true
+	}
+
+	if parsed {
+		fmt.Printf("My birthday is: %s\n", bday.Format("January 2, 2006"))
+
+		now := time.Now()
+		if bday.Month() == now.Month() && bday.Day() == now.Day() {
+			fmt.Println("Today is your birthday! Yay!")
+		}
+	} else {
+		fmt.Printf("My birthday is: %s\n", bdayRaw)
+	}
+}
+
+func printFamilyBirthdays(config *Config) error {
+	f, err := os.Open(config.ContactsVcfFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := vcard.NewDecoder(f)
+	for {
+		card, err := dec.Decode()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return err
+		}
+		fn := card.PreferredValue(vcard.FieldFormattedName)
+		if fn == config.MyName {
+			continue
+		}
+		bdayRaw := card.PreferredValue(vcard.FieldBirthday)
+		if bdayRaw == "" {
+			continue
+		}
+		printBirthday(bdayRaw)
+	}
+	return nil
+}
+
 func doBirthday(config *Config, args []string) error {
 	f, err := os.Open(config.ContactsVcfFile)
 	if err != nil {
@@ -1176,36 +1231,11 @@ func doBirthday(config *Config, args []string) error {
 			if bdayRaw == "" {
 				return fmt.Errorf("birthday not found for %s", config.MyName)
 			}
-
-			var bday time.Time
-			var parsed bool
-
-			// Try full date first
-			if t, err := time.Parse("2006-01-02", bdayRaw); err == nil {
-				bday = t
-				parsed = true
-			} else if t, err := time.Parse("--01-02", bdayRaw); err == nil {
-				// vCard 4.0 allows partial date like --MM-DD
-				bday = t
-				parsed = true
-			}
-
-			if parsed {
-				fmt.Printf("My birthday is: %s\n", bday.Format("January 2, 2006"))
-
-				now := time.Now()
-				if bday.Month() == now.Month() && bday.Day() == now.Day() {
-					fmt.Println("Today is your birthday! Yay!")
-				}
-			} else {
-				fmt.Printf("My birthday is: %s\n", bdayRaw)
-			}
-
+			printBirthday(bdayRaw)
+			printFamilyBirthdays(config)
 			return nil
 		}
 	}
-
-	// TODO: Print out birthdays of family members
 
 	return fmt.Errorf("contact not found: %s", config.MyName)
 }
@@ -1321,8 +1351,7 @@ func doSubtract(config *Config, args []string) error {
 func doCountGame(config *Config, args []string) error {
 	count := rand.Intn(9) + 1 // 1–9
 
-	// TODO: Format to be a little more readable
-	fmt.Println(strings.Repeat("O", count))
+	fmt.Println(strings.Repeat("O ", count))
 
 	fmt.Print("How many Os? ")
 	reader := bufio.NewReader(os.Stdin)
@@ -1337,12 +1366,10 @@ func doCountGame(config *Config, args []string) error {
 		fmt.Println("Please enter a number.")
 		return nil
 	}
-
-	// TODO: color
 	if n == count {
-		fmt.Println("That's correct!")
+		fmt.Println("\033[32mThat's correct!\033[0m")
 	} else {
-		fmt.Println("That is incorrect.")
+		fmt.Println("\033[31mThat is incorrect.\033[0m")
 	}
 	return nil
 }
@@ -1459,8 +1486,7 @@ func doFamily(config *Config, args []string) error {
 
 func doBedtime(config *Config, args []string) error {
 	now := time.Now()
-	// FIXME: get bedtime from config
-	bedtime := time.Date(now.Year(), now.Month(), now.Day(), 21, 0, 0, 0, now.Location())
+	bedtime := time.Date(now.Year(), now.Month(), now.Day(), config.BedtimeHour, config.BedtimeMinute, 0, 0, now.Location())
 
 	// If it's already past bedtime, show tomorrow's bedtime
 	if now.After(bedtime) {
