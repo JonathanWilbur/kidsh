@@ -1,7 +1,5 @@
 # Kid Shell
 
-**Work in progress. This whole readme is likely to be wrong.**
-
 This is a lightweight / low-capability secure shell for young children to fool
 around on a computer. It has simple commands for doing easy tasks in a simple
 way that children can understand, such as pressing `c` to display colors, or
