@@ -25,6 +25,8 @@ fi
 dnf install -y rpm-build golang gcc tar gzip ca-certificates
 
 HOST_ARCH="$(uname -m)"
+GO_CGO=1
+GO_SYSROOT=""
 if [[ "${RPM_ARCH}" != "${HOST_ARCH}" ]]; then
   case "${RPM_ARCH}" in
     aarch64)
@@ -40,6 +42,20 @@ if [[ "${RPM_ARCH}" != "${HOST_ARCH}" ]]; then
       exit 1
       ;;
   esac
+  # Fedora's *-linux-gnu GCC is a kernel/bare-metal toolchain. User-space CGO
+  # needs the matching glibc sysroot (Debian's equivalent of libc6-dev-*-cross).
+  fedora_ver="$(rpm -E %fedora)"
+  sysroot_pkg="sysroot-${RPM_ARCH}-fc${fedora_ver}-glibc"
+  if dnf install -y "${sysroot_pkg}" || dnf install -y "sysroot-${RPM_ARCH}-glibc"; then
+    GO_SYSROOT="/usr/${RPM_ARCH}-redhat-linux/sys-root/fc${fedora_ver}"
+    if [[ ! -d "${GO_SYSROOT}/usr/include" ]]; then
+      echo "sysroot headers missing at ${GO_SYSROOT}/usr/include" >&2
+      exit 1
+    fi
+  else
+    echo "no user-space glibc sysroot for ${RPM_ARCH}; building with CGO disabled" >&2
+    GO_CGO=0
+  fi
 fi
 
 TOPDIR="${ROOT}/rpmbuild"
@@ -51,13 +67,20 @@ cp "${ROOT}/kidsh.spec" "${TOPDIR}/SPECS/"
 
 CC="${CC:-gcc}"
 
-rpmbuild -bb \
-  --target "${RPM_ARCH}" \
-  --define "_topdir ${TOPDIR}" \
-  --define "debug_package %{nil}" \
-  --define "go_arch ${GOARCH}" \
-  --define "go_cc ${CC}" \
-  "${TOPDIR}/SPECS/kidsh.spec"
+rpmbuild_args=(
+  -bb
+  --target "${RPM_ARCH}"
+  --define "_topdir ${TOPDIR}"
+  --define "debug_package %{nil}"
+  --define "go_arch ${GOARCH}"
+  --define "go_cc ${CC}"
+  --define "go_cgo ${GO_CGO}"
+)
+if [[ -n "${GO_SYSROOT}" ]]; then
+  rpmbuild_args+=(--define "go_sysroot ${GO_SYSROOT}")
+fi
+
+rpmbuild "${rpmbuild_args[@]}" "${TOPDIR}/SPECS/kidsh.spec"
 
 find "${TOPDIR}/RPMS" -name '*.rpm' -exec cp {} "${ROOT}/" \;
 find "${ROOT}" -maxdepth 1 -name '*.rpm' -print

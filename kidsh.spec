@@ -24,11 +24,15 @@ only built-in commands to ensure security.
 %autosetup
 
 %build
-export CGO_ENABLED=1
+export CGO_ENABLED=%{?go_cgo:%{go_cgo}}%{!?go_cgo:1}
 export GOOS=linux
 export CC=%{?go_cc:%{go_cc}}%{!?go_cc:gcc}
 %if 0%{?go_arch:1}
 export GOARCH=%{go_arch}
+%endif
+%if 0%{?go_sysroot:1}
+export CGO_CFLAGS="${CGO_CFLAGS:+${CGO_CFLAGS} }--sysroot=%{go_sysroot}"
+export CGO_LDFLAGS="${CGO_LDFLAGS:+${CGO_LDFLAGS} }--sysroot=%{go_sysroot}"
 %endif
 go build -trimpath -buildvcs=false -ldflags "-s -w -X main.version=%{version}" -o kidsh ./src
 
