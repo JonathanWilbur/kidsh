@@ -34,15 +34,7 @@ parts:
       - go/latest/stable
     override-build: |
       export CGO_ENABLED=0
-      INSTALL="$CRAFT_PART_INSTALL"
-      if [ -z "$INSTALL" ]; then
-        INSTALL="$SNAPCRAFT_PART_INSTALL"
-      fi
-      VERSION="$CRAFT_PROJECT_VERSION"
-      if [ -z "$VERSION" ]; then
-        VERSION="$SNAPCRAFT_PROJECT_VERSION"
-      fi
-      mkdir -p "$INSTALL/bin" "$INSTALL/etc"
-      go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" \
-        -o "$INSTALL/bin/kidsh" ./src
-      cp packaging/kidsh.json.example "$INSTALL/etc/kidsh.json"
+      mkdir -p "${SNAPCRAFT_PART_INSTALL}/bin" "${SNAPCRAFT_PART_INSTALL}/etc"
+      go build -trimpath -ldflags "-s -w -X main.version=${SNAPCRAFT_PROJECT_VERSION}" \
+        -o "${SNAPCRAFT_PART_INSTALL}/bin/kidsh" ./src
+      cp packaging/kidsh.json.example "${SNAPCRAFT_PART_INSTALL}/etc/kidsh.json"
