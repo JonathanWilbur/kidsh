@@ -7,6 +7,7 @@ url="https://github.com/JonathanWilbur/kidsh"
 arch="x86_64 aarch64 riscv64"
 license="MIT"
 makedepends="go"
+subpackages="$pkgname-doc"
 options="net chmod-clean !strip"
 source="$pkgname-$pkgver.tar.gz"
 

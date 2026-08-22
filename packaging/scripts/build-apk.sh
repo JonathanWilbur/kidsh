@@ -29,7 +29,8 @@ if [ -z "${PRIVKEY_SRC}" ] || [ ! -f "${PRIVKEY_SRC}" ]; then
   exit 1
 fi
 
-apk add --no-cache alpine-sdk go git sudo ca-certificates openssl
+# Keep APKINDEX in cache so abuild does not warn about missing CDN indexes.
+apk add alpine-sdk go git sudo ca-certificates openssl
 
 if ! id packager >/dev/null 2>&1; then
   adduser -D packager
@@ -50,11 +51,18 @@ if [ -f "${REPO_PUB}" ] && ! cmp -s "${REPO_PUB}" "${ABUILD_DIR}/${KEY_NAME}.pub
   exit 1
 fi
 
-printf 'PACKAGER_PRIVKEY=%s\nPACKAGER="Jonathan M. Wilbur <jonathan@wilbur.space>"\n' \
-  "${ABUILD_DIR}/${KEY_NAME}" >"${ABUILD_DIR}/abuild.conf"
+printf '%s\n' \
+  "PACKAGER_PRIVKEY=${ABUILD_DIR}/${KEY_NAME}" \
+  'PACKAGER="Jonathan M. Wilbur <jonathan@wilbur.space>"' \
+  "REPODEST=/home/packager/packages" \
+  >"${ABUILD_DIR}/abuild.conf"
 cp "${ABUILD_DIR}/${KEY_NAME}.pub" "/etc/apk/keys/${KEY_NAME}.pub"
 cp "${ABUILD_DIR}/${KEY_NAME}.pub" "${ROOT}/${KEY_NAME}.pub"
 chown -R packager:packager /home/packager
+
+# Seed a signed empty local repo so first abuild -r does not warn on APKINDEX.
+REPO_ARCH="/home/packager/packages/aports/${CARCH}"
+mkdir -p "${REPO_ARCH}"
 
 WORKDIR="/home/packager/aports/kidsh"
 rm -rf "${WORKDIR}"
@@ -64,7 +72,8 @@ cp "${TARBALL}" "${WORKDIR}/"
 sed -i "s/^pkgver=.*/pkgver=${VERSION}/" "${WORKDIR}/APKBUILD"
 chown -R packager:packager /home/packager
 
+su packager -c "cd '${REPO_ARCH}' && apk index -o APKINDEX.tar.gz && abuild-sign APKINDEX.tar.gz"
 su packager -c "cd '${WORKDIR}' && CARCH='${CARCH}' abuild checksum && CARCH='${CARCH}' abuild -r"
 
-find /home/packager/packages -name 'kidsh-*.apk' ! -name '*-dev-*' ! -name '*-doc-*' -exec cp {} "${ROOT}/" \;
+find /home/packager/packages -name 'kidsh-*.apk' ! -name '*-dev-*' -exec cp {} "${ROOT}/" \;
 find "${ROOT}" -maxdepth 1 -name '*.apk' -print
