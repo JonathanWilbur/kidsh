@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="console-application">
+  <id>io.github.jonathanwilbur.kidsh</id>
+  <name>Kid Shell</name>
+  <summary>A lightweight secure shell for young children</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.jonathanwilbur">
+    <name>Jonathan M. Wilbur</name>
+  </developer>
+  <description>
+    <p>
+      Kid Shell is a lightweight, low-capability secure shell designed for
+      young children to safely explore computers. It provides simple commands
+      for basic tasks that children can understand, such as displaying colors,
+      showing days of the week, and taking notes.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/JonathanWilbur/kidsh</url>
+  <url type="bugtracker">https://github.com/JonathanWilbur/kidsh/issues</url>
+  <provides>
+    <binary>kidsh</binary>
+  </provides>
+  <categories>
+    <category>Utility</category>
+    <category>Education</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+</component>

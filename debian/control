@@ -2,13 +2,16 @@ Source: kidsh
 Section: utils
 Priority: optional
 Maintainer: Jonathan M. Wilbur <jonathan@wilbur.space>
-Build-Depends: debhelper (= 13), golang-go (>= 1.20)
+Build-Depends: debhelper-compat (= 13), golang-go (>= 1.22)
 Standards-Version: 4.6.2
 Homepage: https://github.com/JonathanWilbur/kidsh
+Vcs-Git: https://github.com/JonathanWilbur/kidsh.git
+Vcs-Browser: https://github.com/JonathanWilbur/kidsh
+Rules-Requires-Root: no
 
 Package: kidsh
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}
 Description: A lightweight secure shell for young children
  Kid Shell is a lightweight and low-capability secure shell designed
  for young children to safely explore computers. It provides simple

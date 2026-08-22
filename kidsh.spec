@@ -1,38 +1,55 @@
 Name:           kidsh
 Version:        1.0.0
-Release:        1%{?dist}
+Release:        1
 Summary:        A lightweight secure shell for young children
 
 License:        MIT
-URL:            https://github.com/yourusername/kidsh
+URL:            https://github.com/JonathanWilbur/kidsh
 Source0:        %{name}-%{version}.tar.gz
 
-BuildRequires:  golang >= 1.20
-Requires:       glibc
-Requires:       systemd
+BuildRequires:  golang >= 1.22
+
+%global debug_package %{nil}
+%global __strip /bin/true
 
 %description
-Kid Shell is a lightweight, low-capability secure shell designed for young children
-to safely explore and interact with a computer. It provides simple commands for
-basic tasks that children can understand, such as displaying colors, showing days
-of the week, and taking notes. The shell compiles as a static binary and supports
-only built-in commands to ensure security.
+Kid Shell is a lightweight, low-capability secure shell designed for young
+children to safely explore and interact with a computer. It provides simple
+commands for basic tasks that children can understand, such as displaying
+colors, showing days of the week, and taking notes. The shell compiles as a
+static binary and supports only built-in commands to ensure security.
 
 %prep
 %autosetup
 
 %build
-go build -o kidsh src/main.go src/cmd.go src/ansi.go src/config.go
+export CGO_ENABLED=0
+export GOOS=linux
+%if 0%{?go_arch:1}
+export GOARCH=%{go_arch}
+%endif
+go build -trimpath -ldflags "-s -w -X main.version=%{version}" -o kidsh ./src
+
+%check
+export CGO_ENABLED=0
+%if 0%{?go_arch:1}
+export GOARCH=%{go_arch}
+%endif
+native="$(go env GOHOSTARCH)"
+target="$(go env GOARCH)"
+GOARCH="$native" go test ./...
+if [ "$target" = "$native" ]; then
+  ./kidsh -version
+fi
 
 %install
-mkdir -p %{buildroot}%{_bindir}
-install -m 755 kidsh %{buildroot}%{_bindir}/kidsh
+install -D -m 755 kidsh %{buildroot}%{_bindir}/kidsh
 
 %files
 %license LICENSE.txt
-%doc README.md
+%doc README.md packaging/kidsh.json.example
 %{_bindir}/kidsh
 
 %changelog
-* %(date '+%a %b %d %Y') %{packager} - %{version}-%{release}
-- Initial RPM package for kidsh 
+* Fri Aug 21 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.0-1
+- Initial packaging

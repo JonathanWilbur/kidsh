@@ -1,0 +1,51 @@
+id: io.github.jonathanwilbur.kidsh
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.golang
+command: kidsh
+finish-args:
+  - --share=network
+  - --filesystem=home
+  - --filesystem=/etc/kidsh.json:ro
+  - --filesystem=/etc/kidsh:ro
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - "*.a"
+
+modules:
+  - name: kidsh
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/golang/bin
+      env:
+        CGO_ENABLED: "0"
+        GO111MODULE: "on"
+      build-args:
+        - --share=network
+      test-args:
+        - --share=network
+    run-tests: true
+    test-commands:
+      - |
+        . /usr/lib/sdk/golang/enable.sh
+        go test ./...
+        ./kidsh -version
+    build-commands:
+      - |
+        . /usr/lib/sdk/golang/enable.sh
+        if [ -f VERSION ]; then
+          VERSION="$(cat VERSION)"
+        else
+          VERSION="1.0.0"
+        fi
+        go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o kidsh ./src
+      - install -Dm755 kidsh /app/bin/kidsh
+      - install -Dm644 packaging/flatpak/io.github.jonathanwilbur.kidsh.desktop /app/share/applications/io.github.jonathanwilbur.kidsh.desktop
+      - install -Dm644 packaging/flatpak/io.github.jonathanwilbur.kidsh.metainfo.xml /app/share/metainfo/io.github.jonathanwilbur.kidsh.metainfo.xml
+      - install -Dm644 packaging/kidsh.json.example /app/share/doc/kidsh/kidsh.json.example
+    sources:
+      - type: dir
+        path: ../..

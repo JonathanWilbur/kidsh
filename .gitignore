@@ -5,3 +5,30 @@ a.out
 *.exe
 *.db
 rpmbuild
+VERSION
+dist/
+
+# Debian build leftovers
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/kidsh/
+debian/kidsh.substvars
+debian/*.debhelper
+debian/*.debhelper.log
+
+# Package artifacts
+*.deb
+*.buildinfo
+*.changes
+*.rpm
+*.apk
+*.snap
+*.flatpak
+*.pkg.tar.zst
+*.pkg.tar.xz
+kidsh.rb
+kidsh-*.tar.gz
+
+# Alpine abuild private keys (public keys are *.rsa.pub and should be committed)
+*.rsa

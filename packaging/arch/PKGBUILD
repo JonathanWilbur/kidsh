@@ -1,0 +1,37 @@
+# Maintainer: Jonathan M. Wilbur <jonathan@wilbur.space>
+pkgname=kidsh
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="A lightweight secure shell for young children"
+arch=('x86_64' 'aarch64' 'riscv64')
+url="https://github.com/JonathanWilbur/kidsh"
+license=('MIT')
+makedepends=('go')
+options=(!debug !strip)
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  export CGO_ENABLED=0
+  export GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
+  go build -trimpath -ldflags "-s -w -X main.version=$pkgver" -o kidsh ./src
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  export CGO_ENABLED=0
+  native="$(go env GOHOSTARCH)"
+  GOARCH="$native" go test ./...
+  if [ "$(go env GOARCH)" = "$native" ]; then
+    ./kidsh -version
+  fi
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 kidsh "$pkgdir/usr/bin/kidsh"
+  install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/LICENSE.txt"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 packaging/kidsh.json.example "$pkgdir/usr/share/doc/$pkgname/kidsh.json.example"
+}

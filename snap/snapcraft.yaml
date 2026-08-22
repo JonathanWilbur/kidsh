@@ -1,0 +1,48 @@
+name: kidsh
+base: core22
+version: '1.0.0'
+summary: A lightweight secure shell for young children
+description: |
+  Kid Shell is a lightweight, low-capability secure shell designed for
+  young children to safely explore computers. It provides simple commands
+  for basic tasks that children can understand, such as displaying colors,
+  showing days of the week, and taking notes.
+
+grade: stable
+confinement: strict
+license: MIT
+website: https://github.com/JonathanWilbur/kidsh
+source-code: https://github.com/JonathanWilbur/kidsh
+issues: https://github.com/JonathanWilbur/kidsh/issues
+
+apps:
+  kidsh:
+    command: bin/kidsh
+    plugs:
+      - network
+      - home
+
+layout:
+  /etc/kidsh.json:
+    bind-file: $SNAP/etc/kidsh.json
+
+parts:
+  kidsh:
+    plugin: go
+    source: .
+    build-snaps:
+      - go/latest/stable
+    override-build: |
+      export CGO_ENABLED=0
+      INSTALL="$CRAFT_PART_INSTALL"
+      if [ -z "$INSTALL" ]; then
+        INSTALL="$SNAPCRAFT_PART_INSTALL"
+      fi
+      VERSION="$CRAFT_PROJECT_VERSION"
+      if [ -z "$VERSION" ]; then
+        VERSION="$SNAPCRAFT_PROJECT_VERSION"
+      fi
+      mkdir -p "$INSTALL/bin" "$INSTALL/etc"
+      go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" \
+        -o "$INSTALL/bin/kidsh" ./src
+      cp packaging/kidsh.json.example "$INSTALL/etc/kidsh.json"

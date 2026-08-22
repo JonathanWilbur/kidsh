@@ -1,5 +1,14 @@
 #!/usr/bin/make -f
 
+include /usr/share/dpkg/architecture.mk
+
+export CGO_ENABLED = 0
+export GO111MODULE = on
+export GOOS = linux
+export GOARCH = $(DEB_HOST_ARCH)
+
+VERSION := $(shell dpkg-parsechangelog -S Version | cut -d- -f1)
+
 %:
 	dh $@
 
@@ -7,13 +16,21 @@ override_dh_auto_clean:
 	rm -f kidsh
 
 override_dh_auto_build:
-	go build -o kidsh src/main.go src/cmd.go src/ansi.go src/config.go
+	go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o kidsh ./src
+
+override_dh_auto_test:
+	GOARCH=$(DEB_BUILD_ARCH) go test ./...
+ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+	@echo "skipping target binary smoke test on cross-build ($(DEB_HOST_ARCH))"
+else
+	./kidsh -version
+endif
 
 override_dh_auto_install:
-	dh_auto_install
-	mkdir -p debian/kidsh/usr/bin
-	cp kidsh debian/kidsh/usr/bin/
-	chmod 755 debian/kidsh/usr/bin/kidsh
+	install -D -m 755 kidsh debian/kidsh/usr/bin/kidsh
 
 override_dh_dwz:
 	# Skip dwz compression for Go binaries
+
+override_dh_strip:
+	# Go binary is already stripped via -ldflags -s -w

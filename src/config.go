@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 type ConfigFile struct {
@@ -52,8 +54,25 @@ func (c *Config) LoadFromFile(filename string) error {
 	return c.FromJSON(data)
 }
 
+func configSearchPaths() []string {
+	var paths []string
+	if p := strings.TrimSpace(os.Getenv("KIDSH_CONFIG")); p != "" {
+		paths = append(paths, p)
+	}
+	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+		paths = append(paths, filepath.Join(xdg, "kidsh", "config.json"))
+	} else if home, err := os.UserHomeDir(); err == nil && home != "" {
+		paths = append(paths, filepath.Join(home, ".config", "kidsh", "config.json"))
+	}
+	if snap := os.Getenv("SNAP"); snap != "" {
+		paths = append(paths, filepath.Join(snap, "etc", "kidsh.json"))
+	}
+	paths = append(paths, "/etc/kidsh.json", "/etc/kidsh/config.json")
+	return paths
+}
+
 func getConfig() *Config {
-	paths := []string{"/etc/kidsh.json", "/etc/kidsh/config.json"}
+	paths := configSearchPaths()
 	var cf ConfigFile
 	var found bool
 	for _, path := range paths {

@@ -1,0 +1,10 @@
+{
+  "rssUrl": "",
+  "contactsVcfFile": "",
+  "familyInfoFile": "",
+  "bedtimeHour": 21,
+  "bedtimeMinute": 0,
+  "blacklistedCommands": [],
+  "todoFile": "",
+  "myName": ""
+}

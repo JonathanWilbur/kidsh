@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Kid Shell
+Comment=A lightweight secure shell for young children
+Exec=kidsh
+Terminal=true
+Categories=Utility;Education;
+NoDisplay=true
