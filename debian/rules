@@ -10,6 +10,12 @@ export CC = $(DEB_HOST_GNU_TYPE)-gcc
 export CXX = $(DEB_HOST_GNU_TYPE)-g++
 
 VERSION := $(shell dpkg-parsechangelog -S Version | cut -d- -f1)
+GO_LDFLAGS := -s -w -X main.version=$(VERSION)
+# GCC 15 on riscv64 emits empty-section symbols that panic Go's internal
+# linker (https://github.com/golang/go/issues/72840). Use the C toolchain.
+ifeq ($(DEB_HOST_ARCH),riscv64)
+GO_LDFLAGS += -linkmode=external
+endif
 
 %:
 	dh $@
@@ -18,7 +24,7 @@ override_dh_auto_clean:
 	rm -f kidsh
 
 override_dh_auto_build:
-	go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o kidsh ./src
+	go build -trimpath -ldflags "$(GO_LDFLAGS)" -o kidsh ./src
 
 override_dh_auto_test:
 	GOARCH=$(DEB_BUILD_ARCH) CGO_ENABLED=1 CC=$(DEB_BUILD_GNU_TYPE)-gcc go test ./...
