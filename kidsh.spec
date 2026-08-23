@@ -62,5 +62,27 @@ install -D -m 644 man/kidsh.1 %{buildroot}%{_mandir}/man1/kidsh.1
 %{_mandir}/man1/kidsh.1*
 
 %changelog
+* Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.4-1
+- Make the weather API URL configurable
+- Add unit tests
+- Fix Alpine packages failing because man pages were uncompressed
+
+* Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.3-1
+- Include the man page in packages
+
+* Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.2-1
+- Build dynamically linked executables
+
+* Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.1-1
+- Fix Alpine package builds
+- Fix RPM package builds
+
 * Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.0-1
-- Initial packaging
+- Initial release
+- Lightweight secure shell for young children
+- Built-in commands for safe exploration, including calendar, colors,
+  notes, weather, news, math, stacks, queues, todos, home, birthday,
+  age, countdown, counting game, and a Nock interpreter
+- Pass configuration into commands
+- Package as Debian, RPM, Alpine, Arch, Homebrew, Flatpak, and Snap
+- Add Alpine package signing public key

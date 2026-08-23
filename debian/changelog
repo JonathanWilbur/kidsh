@@ -1,7 +1,39 @@
+kidsh (1.0.4) unstable; urgency=medium
+
+  * Make the weather API URL configurable
+  * Add unit tests
+  * Fix Alpine packages failing because man pages were uncompressed
+
+ -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 20:20:29 -0400
+
+kidsh (1.0.3) unstable; urgency=medium
+
+  * Include the man page in packages
+
+ -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 18:28:27 -0400
+
+kidsh (1.0.2) unstable; urgency=medium
+
+  * Build dynamically linked executables
+
+ -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 15:09:19 -0400
+
+kidsh (1.0.1) unstable; urgency=medium
+
+  * Fix Alpine package builds
+  * Fix RPM package builds
+
+ -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 14:37:10 -0400
+
 kidsh (1.0.0) unstable; urgency=medium
 
   * Initial release
   * Lightweight secure shell for young children
-  * Built-in commands for safe exploration
+  * Built-in commands for safe exploration, including calendar, colors,
+    notes, weather, news, math, stacks, queues, todos, home, birthday,
+    age, countdown, counting game, and a Nock interpreter
+  * Pass configuration into commands
+  * Package as Debian, RPM, Alpine, Arch, Homebrew, Flatpak, and Snap
+  * Add Alpine package signing public key
 
- -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 00:00:00 +0000
+ -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 14:11:09 -0400
