@@ -12,11 +12,12 @@ easy tasks, such as showing colors or days of the week, or taking notes.
 It is meant to run in a dedicated full-screen terminal so children cannot
 easily leave the environment.
 .PP
-Built-in commands are not listed in this manual page; they can change
-independently of the packaged documentation. While the shell is running,
-type
+Built-in commands can change independently of the packaged documentation.
+While the shell is running, type
 .B help
-for the current list.
+for the current list. Commands with extra requirements or caveats are
+described in
+.BR COMMANDS .
 .SH OPTIONS
 .TP
 .B \-version
@@ -31,12 +32,74 @@ Exit on error.
 .B \-n
 Dry-run; do not execute commands.
 .SH COMMANDS
+.PP
+Here are just a few commands that are noteworthy, require some setup,
+or don't work all the time.
 .TP
 .BR help " (" helpme ", " cmds ")"
 Print every built-in command, its aliases, and a short description.
 .TP
 .BR quit " (" exit ")"
 Leave the shell.
+.TP
+.B beep
+Write the ASCII BEL character to the terminal. This may have no effect
+depending on the terminal, its settings, and whether a system speaker is
+available.
+.TP
+.B bible
+Look up a Bible verse from
+.UR https://bible-api.com/
+.UE
+\&. Arguments are joined with plus signs and appended to that URL.
+The default translation is the World English Bible (WEB). For example,
+.B bible john 3:16
+requests
+.UR https://bible-api.com/john+3:16
+.UE
+and prints each matching verse as the book name, chapter, and verse
+number, then the verse text. Abbreviations and ranges also work, such as
+.B bible jn 3:16
+and
+.B bible matt 25:31-33,46
+\&.
+.TP
+.B nock
+Evaluate a Nock expression. The interpreter can crash the shell; this is
+a limitation of the Nock library, not of kidsh.
+.TP
+.B speak
+Speak the given text using
+.BR espeak (1) ,
+which must be installed and on
+.BR PATH .
+.TP
+.B news
+Show headlines from the RSS feed configured in
+.BR rssUrl .
+This setting must be set for the command to work.
+.TP
+.BR family " (" fam ")"
+Print the plain-text file named by
+.BR familyInfoFile .
+.TP
+.BR birthday " (" bday "), " birthdays ", " age ", " home
+Read the vCard file at
+.BR contactsVcfFile .
+.B myName
+must match the formatted name (FN) of one contact in that file.
+.B birthday
+and
+.B birthdays
+show birthday dates,
+.B age
+shows the user's age, and
+.B home
+shows that contact's home address.
+.TP
+.BR printout " (" printer ")"
+Send the given text to the system printer by piping it to
+.BR lpr (1) .
 .SH CONFIGURATION
 Optional JSON configuration is read from the first readable file among:
 .IP \(bu 2
@@ -80,11 +143,37 @@ in the documentation directory (typically
 .fi
 .PP
 The
-.B myName
-setting is significant. It is important to set this name to the name used for
-the user in the
+.B rssUrl
+setting is the RSS feed URL used by
+.BR news .
+.PP
+The
 .B contactsVcfFile
-match so that shell commands can know who the user is.
+setting is the path to a vCard file used by
+.BR birthday ,
+.BR birthdays ,
+.BR age ,
+and
+.BR home .
+.B myName
+must be set to the formatted name (FN) of the contact in that file who
+is using the shell.
+.PP
+The
+.B familyInfoFile
+setting is the path to a plain-text file printed by
+.BR family .
+.PP
+The
+.B blacklistedCommands
+setting is an array of strings. Any listed command name or alias is not
+registered, so it does not appear in
+.B help
+and cannot be run. For example, listing
+.B nock
+and
+.B printout
+disables those two commands.
 .PP
 The
 .B weatherUrl
