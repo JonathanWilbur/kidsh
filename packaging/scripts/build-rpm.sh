@@ -44,6 +44,8 @@ if [[ "${RPM_ARCH}" != "${HOST_ARCH}" ]]; then
   esac
   # Fedora's *-linux-gnu GCC is a kernel/bare-metal toolchain. User-space CGO
   # needs the matching glibc sysroot (Debian's equivalent of libc6-dev-*-cross).
+  # GCC 16 also injects -latomic_asneeded; kidsh.spec disables that via
+  # -fno-link-libatomic because the cross compiler does not ship libatomic.
   fedora_ver="$(rpm -E %fedora)"
   sysroot_pkg="sysroot-${RPM_ARCH}-fc${fedora_ver}-glibc"
   if dnf install -y "${sysroot_pkg}" || dnf install -y "sysroot-${RPM_ARCH}-glibc"; then
