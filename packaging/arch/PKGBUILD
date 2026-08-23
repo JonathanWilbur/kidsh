@@ -21,9 +21,10 @@ build() {
 
 check() {
   cd "$pkgname-$pkgver"
-  export CGO_ENABLED=1
   native="$(go env GOHOSTARCH)"
-  GOARCH="$native" go test ./...
+  # Cross builds leave CC set to *-linux-gnu-gcc. go test for the host arch
+  # (amd64) injects -m64, which aarch64/riscv64 gcc reject.
+  CGO_ENABLED=1 CC=gcc GOARCH="$native" go test ./...
   if [ "$(go env GOARCH)" = "$native" ]; then
     ./kidsh -version
   fi
