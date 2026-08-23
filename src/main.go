@@ -68,7 +68,20 @@ func execute(config *Config, command []string) {
 	}
 }
 
+const startupMessage = "This is a shell. You can type commands, then press ENTER on your keyboard to run them. If you don't know the commands just type in 'help' and press ENTER to see them."
+
+func stdinIsTerminal() bool {
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return fi.Mode()&os.ModeCharDevice != 0
+}
+
 func executeFromReader(config *Config, r io.Reader) {
+	if r == os.Stdin && stdinIsTerminal() {
+		fmt.Println(startupMessage)
+	}
 	os.Stdout.Write([]byte(GreenText + ">>> " + NormalText))
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
