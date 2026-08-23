@@ -31,7 +31,6 @@ func init() {
 	flag.BoolVar(&flags.Verbose, "v", false, "verbose")
 	flag.BoolVar(&flags.ExitOnError, "e", false, "exit on error")
 	flag.BoolVar(&flags.DryRun, "n", false, "dry-run")
-	flag.Parse()
 }
 
 func onExecuteError(command []string, err error) {
@@ -478,6 +477,7 @@ func registerCommands(config *Config) {
 }
 
 func main() {
+	flag.Parse()
 	if flags.PrintVersionAndExit {
 		fmt.Println(version)
 		os.Exit(0)
