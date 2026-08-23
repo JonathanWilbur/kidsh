@@ -62,6 +62,12 @@ install -D -m 644 man/kidsh.1 %{buildroot}%{_mandir}/man1/kidsh.1
 %{_mandir}/man1/kidsh.1*
 
 %changelog
+* Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.5-1
+- Print a start message when the shell launches
+- Document commands in the README
+- Expand the man page with per-command notes
+- Fix Arch package builds
+
 * Sat Aug 22 2026 Jonathan M. Wilbur <jonathan@wilbur.space> - 1.0.4-1
 - Make the weather API URL configurable
 - Add unit tests

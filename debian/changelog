@@ -1,3 +1,12 @@
+kidsh (1.0.5) unstable; urgency=medium
+
+  * Print a start message when the shell launches
+  * Document commands in the README
+  * Expand the man page with per-command notes
+  * Fix Arch package builds
+
+ -- Jonathan M. Wilbur <jonathan@wilbur.space>  Sat, 22 Aug 2026 21:23:25 -0400
+
 kidsh (1.0.4) unstable; urgency=medium
 
   * Make the weather API URL configurable
