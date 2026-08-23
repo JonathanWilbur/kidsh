@@ -17,6 +17,7 @@ type ConfigFile struct {
 	BlacklistedCommands []string `json:"blacklistedCommands"`
 	TodoFile            string   `json:"todoFile"`
 	MyName              string   `json:"myName"`
+	WeatherUrl          string   `json:"weatherUrl"`
 }
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 	BlacklistedCommands map[string]bool
 	TodoFile            string
 	MyName              string
+	WeatherUrl          string
 }
 
 func (c *Config) ToJSON() ([]byte, error) {
@@ -95,6 +97,7 @@ func getConfig() *Config {
 			BlacklistedCommands: make(map[string]bool),
 			TodoFile:            "",
 			MyName:              "",
+			WeatherUrl:          "",
 		}
 	}
 	blacklist := make(map[string]bool)
@@ -110,5 +113,6 @@ func getConfig() *Config {
 		BlacklistedCommands: blacklist,
 		TodoFile:            cf.TodoFile,
 		MyName:              cf.MyName,
+		WeatherUrl:          cf.WeatherUrl,
 	}
 }

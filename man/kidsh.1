@@ -73,7 +73,8 @@ in the documentation directory (typically
   "bedtimeMinute": 0,
   "blacklistedCommands": [],
   "todoFile": "",
-  "myName": ""
+  "myName": "",
+  "weatherUrl": ""
 }
 .RE
 .fi
@@ -84,6 +85,17 @@ setting is significant. It is important to set this name to the name used for
 the user in the
 .B contactsVcfFile
 match so that shell commands can know who the user is.
+.PP
+The
+.B weatherUrl
+setting is the URL of a weather service that runs
+.UR https://github.com/schachmat/wego
+.UE
+\&.
+An example is
+.UR https://wttr.in/St.%20Johns,%20Florida?format=3&u
+.UE
+\&.
 .SH NOTES
 The interface is English only. Output uses ANSI escape sequences for
 colors; a color-capable terminal is expected.

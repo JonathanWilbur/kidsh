@@ -619,10 +619,8 @@ func doMultiply(config *Config, args []string) error {
 
 const DEFAULT_WEATHER_URL = "https://wttr.in/St.%20Johns,%20Florida?format=3&u"
 
-// const DEFAULT_WEATHER_URL = "https://wttr.in/St.%20Johns,%20Florida?2Anu"
-
 func doWeather(config *Config, args []string) error {
-	weatherUrl := os.Getenv("WEATHER_URL")
+	weatherUrl := config.WeatherUrl
 	if len(weatherUrl) < 8 { // Could not be valid if smaller.
 		weatherUrl = DEFAULT_WEATHER_URL
 	}

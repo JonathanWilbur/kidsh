@@ -6,5 +6,6 @@
   "bedtimeMinute": 0,
   "blacklistedCommands": [],
   "todoFile": "",
-  "myName": ""
+  "myName": "",
+  "weatherUrl": ""
 }
